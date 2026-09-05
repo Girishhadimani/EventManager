@@ -1,10 +1,591 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>index</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLS Gogte Institute of Technology, Belgaum — Campus Activity Hub</title>
+  <meta name="description" content="Official Activity Hub for KLS Gogte Institute of Technology, Belgaum (KLS GIT Belagavi). Explore student clubs, hackathons, workshops, and verified credentials." />
+  <link rel="icon" type="image/png" href="/images/kls_git_logo.png" />
+  <link rel="stylesheet" href="/css/style.css?v=20260905_v6" />
 </head>
 <body>
-<h1> Welcome to home screen of eventor</h1>
+
+<div id="toast-container"></div>
+
+<!-- Top Navigation -->
+<nav class="public-nav">
+  <div class="public-nav-inner">
+    <a href="/index.html" class="public-brand">
+      <img src="/images/kls_git_logo.png" alt="KLS GIT Logo" style="width:42px; height:42px; border-radius:50%; object-fit:contain; background:#fff; padding:1px; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;" />
+      <div>
+        <span class="brand-name" style="font-size:1.15rem; font-weight:800; display:block; line-height:1.2;">KLS GIT Belgaum</span>
+        <span style="font-size:0.68rem; color:var(--accent-cyan); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block;">Campus Activity Hub</span>
+      </div>
+    </a>
+    <div class="public-nav-links">
+      <a href="#events-section" class="nav-link">Upcoming Events</a>
+      <a href="#clubs-section" class="nav-link">Clubs & Societies</a>
+    </div>
+    <div id="nav-auth-container">
+      <!-- Dynamic authentication buttons injected via JS -->
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section with Real Campus Photo -->
+<header class="hub-hero">
+  <div style="display:flex; justify-content:center; margin-bottom:16px;">
+    <img src="/images/kls_git_logo.png" alt="KLS GIT Official Emblem" style="width:96px; height:96px; border-radius:50%; object-fit:contain; background:#fff; padding:3px; box-shadow:0 8px 32px rgba(0,0,0,0.5); border:2px solid rgba(255,255,255,0.25);" />
+  </div>
+  <div class="hub-hero-badge">
+    <span class="live-pulse-dot"></span> <span>🏛️</span> KLS Gogte Institute of Technology, Belgaum • Autonomous Institution
+  </div>
+  <h1>Campus Activity Hub.<br/><span class="text-gradient-flow">Explore, Compete & Excel.</span></h1>
+  <p>
+    Welcome to the official student life and activities portal for <strong>KLS GIT Belgaum</strong>. Discover flagship hackathons, technical workshops, cultural celebrations, and sports tournaments hosted by campus clubs.
+  </p>
+
+  <!-- Live Search Bar -->
+  <div class="hub-search-box">
+    <span class="hub-search-icon">🔍</span>
+    <input 
+      type="text" 
+      id="search-input" 
+      class="hub-search-input" 
+      placeholder="Search events, clubs, venues, or keywords..." 
+      oninput="onSearchChange()"
+    />
+  </div>
+
+  <div style="display:flex; justify-content:center; align-items:center; gap: 14px; flex-wrap: wrap; margin: 8px 0 20px 0;">
+    <a href="#events-section" class="btn btn-primary" style="display:inline-flex; width:auto; padding: 12px 28px; font-size: 0.95rem; text-decoration:none;">
+      🔥 Explore Events
+    </a>
+    <a href="#clubs-section" class="btn btn-secondary" style="display:inline-flex; width:auto; padding: 12px 28px; font-size: 0.95rem; text-decoration:none;">
+      🏛 Discover Clubs
+    </a>
+    <button class="btn btn-secondary" onclick="openLoginModal()" style="display:inline-flex; width:auto; padding: 12px 28px; font-size: 0.95rem;">
+      🔐 Institutional Sign In
+    </button>
+  </div>
+
+  <div class="hub-stats-row">
+    <div class="hub-stat-item">
+      <span class="hub-stat-num" id="stat-events-count">10+</span>
+      <span class="hub-stat-lbl">Active Events</span>
+    </div>
+    <div class="hub-stat-item">
+      <span class="hub-stat-num" id="stat-clubs-count">5</span>
+      <span class="hub-stat-lbl">Campus Clubs</span>
+    </div>
+    <div class="hub-stat-item">
+      <span class="hub-stat-num">100%</span>
+      <span class="hub-stat-lbl">Verified Certificates</span>
+    </div>
+    <div class="hub-stat-item">
+      <span class="hub-stat-num">500+</span>
+      <span class="hub-stat-lbl">Engaged Students</span>
+    </div>
+  </div>
+</header>
+
+<!-- Main Hub Content -->
+<main class="page-container" style="max-width: 1280px; margin: 40px auto; padding: 0 24px;">
+
+  <!-- Section 1: Upcoming Events -->
+  <section id="events-section" style="margin-bottom: 60px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 20px; flex-wrap:wrap; gap: 12px;">
+      <div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--text-primary);">
+          🔥 Upcoming Campus Events
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">
+          Register to participate, compete, and earn official collegiate certificates.
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Chips -->
+    <div class="filter-chips-row">
+      <button class="filter-chip active" onclick="filterCategory('ALL', this)">All Categories</button>
+      <button class="filter-chip" onclick="filterCategory('CODING', this)">💻 Coding & Hackathons</button>
+      <button class="filter-chip" onclick="filterCategory('WORKSHOP', this)">🛠 Workshops & Bootcamps</button>
+      <button class="filter-chip" onclick="filterCategory('DESIGN', this)">🎨 Design & UI/UX</button>
+      <button class="filter-chip" onclick="filterCategory('SPORTS', this)">⚽ Sports & Athletics</button>
+      <button class="filter-chip" onclick="filterCategory('QUIZ', this)">🧠 Quizzes & Trivia</button>
+    </div>
+
+    <!-- Events Grid -->
+    <div class="events-grid" id="events-grid">
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="spinner"></div>
+        <p style="margin-top: 12px;">Loading campus events...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Campus Clubs Showcase -->
+  <section id="clubs-section" style="margin-bottom: 60px;">
+    <div style="margin-bottom: 24px;">
+      <h2 style="font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--text-primary);">
+        🏛 Featured Student Societies & Clubs
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">
+        Explore verified student clubs, meet faculty advisors, and discover chapter activities.
+      </p>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;" id="clubs-grid">
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="spinner"></div>
+        <p style="margin-top: 12px;">Loading student organizations...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Campus Calendar (Compact Widget) -->
+  <section id="calendar-section" style="margin-bottom: 40px;">
+    <div style="margin-bottom: 14px; display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap;">
+      <div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0; color: var(--text-primary);">
+          📅 Campus Event Calendar
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 2px;">
+          Scheduled dates and upcoming deadlines at a glance.
+        </p>
+      </div>
+      <a href="#events-section" style="font-size:0.8rem; color:var(--accent-blue); text-decoration:none;">View All Events →</a>
+    </div>
+
+    <div id="calendar-container" class="compact-calendar-widget"></div>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer style="border-top: 1px solid var(--border); padding: 32px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; background: var(--bg-card);">
+  <p style="margin: 0 0 6px 0; font-weight: 600; color: var(--text-primary);">KLS Gogte Institute of Technology, Belgaum</p>
+  <p style="margin: 0 0 6px 0;">Campus Clubs & Event Management System • Autonomous Institute Affiliated to VTU Belagavi</p>
+  <p style="margin: 0; font-size: 0.78rem;">Empowering student innovations, hackathons, technical symposiums, and cultural excellence.</p>
+</footer>
+
+<!-- Public Event Details Modal -->
+<div class="modal-overlay" id="eventDetailsModal">
+  <div class="modal-card" style="max-width: 650px;">
+    <div class="modal-header">
+      <h3 id="detailsModalTitle">Event Details</h3>
+      <button class="modal-close" onclick="closeModal('eventDetailsModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="detailsModalBody"></div>
+    <div class="modal-footer" id="detailsModalActions"></div>
+  </div>
+</div>
+
+<!-- Unified Auth Modal: Sign In + Create Account -->
+<div class="modal-overlay" id="loginModal" style="align-items: flex-start; padding: 20px 16px;">
+  <div class="modal-card" style="max-width: 480px; margin: auto; align-self: center; max-height: calc(100vh - 40px); overflow-y: auto;">
+
+    <!-- Header -->
+    <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px; margin-bottom: 0;">
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <span style="font-size:1.6rem;">🎓</span>
+        <div>
+          <h3 style="margin:0; font-size: 1.2rem;" id="auth-modal-title">KLS GIT — Campus Access</h3>
+          <p style="margin:0; font-size:0.73rem; color:var(--text-muted);">Gogte Institute of Technology, Belgaum</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeLoginModal()">&#x2715;</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex; gap:0; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
+      <button id="tab-signin" onclick="switchAuthTab('signin')" style="
+        flex:1; padding: 12px; background:transparent; border:none; cursor:pointer;
+        font-size: 0.88rem; font-weight: 700; color: var(--accent-purple);
+        border-bottom: 2px solid var(--accent-purple); transition: all 0.2s;
+      ">🔐 Sign In</button>
+      <button id="tab-register" onclick="switchAuthTab('register')" style="
+        flex:1; padding: 12px; background:transparent; border:none; cursor:pointer;
+        font-size: 0.88rem; font-weight: 600; color: var(--text-muted);
+        border-bottom: 2px solid transparent; transition: all 0.2s;
+      ">✨ Create Account</button>
+    </div>
+
+    <!-- ─── SIGN IN PANEL ─── -->
+    <div id="auth-panel-signin">
+      <form id="login-form" novalidate onsubmit="handleLogin(event); return false;">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <input type="email" id="email" name="email" placeholder="you@college.edu" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper" style="position:relative;">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required style="padding-right: 44px;" />
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show/hide password">👁️</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="role">Select Your Role</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🎭</span>
+            <select id="role" name="role" required>
+              <option value="" disabled selected>Select Role</option>
+              <option value="DEVELOPER">🛠 Developer / Admin</option>
+              <option value="COORDINATOR">📋 Coordinator</option>
+              <option value="FACULTY_COORDINATOR">🎓 Faculty Coordinator</option>
+              <option value="USER">👤 Student / User</option>
+            </select>
+          </div>
+        </div>
+        <div id="error-msg" class="error-msg"></div>
+        <button type="submit" id="login-btn" class="btn btn-primary" style="margin-top: 20px; width: 100%;">
+          Sign In →
+        </button>
+      </form>
+      <p style="text-align:center; margin-top:14px; font-size:0.73rem; color:var(--text-muted);">
+        New student? <span style="color:var(--accent-purple); cursor:pointer; font-weight:600;" onclick="switchAuthTab('register')">Create an account →</span>
+      </p>
+    </div>
+
+    <!-- ─── CREATE ACCOUNT PANEL ─── -->
+    <div id="auth-panel-register" style="display:none;">
+      <form id="register-form" novalidate onsubmit="handleStudentRegister(event)">
+
+        <!-- Row 1: Name + USN -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label for="reg-name">Full Name *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input type="text" id="reg-name" placeholder="Bhargav Mahesh" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-usn">USN *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🪪</span>
+              <input type="text" id="reg-usn" placeholder="2KG21CS001" required style="text-transform:uppercase;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- College Email + OTP -->
+        <div class="form-group">
+          <label for="reg-email">College Email *</label>
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div class="input-wrapper" style="flex:1;">
+              <span class="input-icon">✉</span>
+              <input type="email" id="reg-email" placeholder="usn@kls.ac.in or college email" required />
+            </div>
+            <button type="button" id="otp-send-btn" onclick="sendOTP()"
+              style="flex-shrink:0; padding: 10px 14px; background: var(--accent-purple); color:#fff; border:none; border-radius: var(--radius-md); cursor:pointer; font-size:0.8rem; font-weight:600; white-space:nowrap;">
+              Send OTP
+            </button>
+          </div>
+        </div>
+
+        <!-- OTP Input (hidden until sent) -->
+        <div class="form-group" id="otp-verify-row" style="display:none;">
+          <label for="reg-otp">Enter OTP <span style="color:var(--accent-green); font-size:0.75rem;" id="otp-status-text">(Check your email)</span></label>
+          <div style="display:flex; gap:8px;">
+            <div class="input-wrapper" style="flex:1;">
+              <span class="input-icon">🔢</span>
+              <input type="text" id="reg-otp" placeholder="6-digit code" maxlength="6" inputmode="numeric" />
+            </div>
+            <button type="button" onclick="verifyOTP()"
+              style="flex-shrink:0; padding: 10px 14px; background: var(--accent-green); color:#fff; border:none; border-radius: var(--radius-md); cursor:pointer; font-size:0.8rem; font-weight:600;">
+              Verify ✓
+            </button>
+          </div>
+          <div id="otp-verified-badge" style="display:none; margin-top:6px; color:var(--accent-green); font-size:0.78rem; font-weight:600;">
+            ✅ Email Verified
+          </div>
+        </div>
+
+        <!-- Row 2: Mobile + Year -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label for="reg-mobile">Mobile Number *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📱</span>
+              <input type="tel" id="reg-mobile" placeholder="10-digit mobile" maxlength="10" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-year">Year of Study *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📚</span>
+              <select id="reg-year" required>
+                <option value="" disabled selected>Select Year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Department -->
+        <div class="form-group">
+          <label for="reg-dept">Department *</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🏛</span>
+            <select id="reg-dept" required>
+              <option value="" disabled selected>Select Department</option>
+              <option value="CSE">Computer Science &amp; Engineering</option>
+              <option value="ISE">Information Science &amp; Engineering</option>
+              <option value="ECE">Electronics &amp; Communication</option>
+              <option value="EEE">Electrical &amp; Electronics</option>
+              <option value="ME">Mechanical Engineering</option>
+              <option value="CE">Civil Engineering</option>
+              <option value="AI-ML">AI &amp; Machine Learning</option>
+              <option value="MBA">MBA</option>
+              <option value="MCA">MCA</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="reg-password">Password *</label>
+          <div class="input-wrapper" style="position:relative;">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="reg-password" placeholder="Create a secure password" required style="padding-right: 44px;" />
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-password', this)" title="Show/hide password">👁️</button>
+          </div>
+        </div>
+
+        <div id="reg-error-msg" class="error-msg"></div>
+
+        <button type="submit" id="register-btn" class="btn btn-primary" style="margin-top:16px; width:100%;">
+          Create Account →
+        </button>
+      </form>
+      <p style="text-align:center; margin-top:14px; font-size:0.73rem; color:var(--text-muted);">
+        Already have an account? <span style="color:var(--accent-purple); cursor:pointer; font-weight:600;" onclick="switchAuthTab('signin')">Sign In →</span>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Event Registration Modal (Direct In-Page Registration on Home Page) -->
+<div class="modal-overlay" id="event-registration-modal">
+  <div class="modal" style="max-width: 640px; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal-header" style="flex-shrink: 0;">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <span id="event-reg-type-badge" class="badge badge-purple">💻 CODING</span>
+          <span id="event-reg-club-badge" class="badge badge-blue">Club</span>
+        </div>
+        <h2 id="event-reg-title" style="font-size:1.3rem;">Event Registration</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal('event-registration-modal')">✕</button>
+    </div>
+
+    <div style="overflow-y: auto; padding: 10px 4px; flex: 1;">
+      <!-- Capacity & Deadline Banner -->
+      <div id="event-reg-capacity-banner" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 18px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; color:var(--accent-cyan); margin-bottom:6px;">
+          <span id="event-reg-capacity-count">👥 0 / 100 Seats Filled</span>
+          <span id="event-reg-deadline-text">📅 Open</span>
+        </div>
+        <div class="capacity-bar-track">
+          <div class="capacity-bar-fill" id="event-reg-capacity-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <form id="public-event-reg-form" onsubmit="submitPublicEventRegistration(event)">
+        <!-- 1. Student Academic Details -->
+        <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+          1. Student Academic Details
+        </h3>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="event-reg-student-name" readonly style="opacity:0.8; cursor:not-allowed;" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">College Email</label>
+            <input type="email" class="form-control" id="event-reg-student-email" readonly style="opacity:0.8; cursor:not-allowed;" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Contact Phone *</label>
+            <input type="tel" class="form-control" id="event-reg-phone" placeholder="9876543210" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">USN / Student ID *</label>
+            <input type="text" class="form-control" id="event-reg-usn" placeholder="e.g. 4XX22CS045" required />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select class="form-control" id="event-reg-dept" required>
+              <option value="">Select Department</option>
+              <option value="Computer Science & Engineering">Computer Science & Eng</option>
+              <option value="Information Science & Engineering">Information Science & Eng</option>
+              <option value="Electronics & Communication">Electronics & Comm</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Master of Business Admin (MBA)">MBA</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Academic Year *</label>
+            <select class="form-control" id="event-reg-year" required>
+              <option value="">Select Year</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Postgraduate">Postgraduate</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Dynamic Event-Type Specific Questions -->
+        <div id="event-dynamic-reg-section" style="margin-top:16px;">
+          <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+            2. Event Participation Requirements
+          </h3>
+          <div id="event-reg-dynamic-questions">
+            <!-- Dynamically populated based on eventType -->
+          </div>
+        </div>
+
+        <!-- 3. Team / Group Registration -->
+        <div id="event-reg-team-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div>
+              <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin:0;">
+                👥 Team / Group Registration
+              </h3>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin:2px 0 0;">
+                Register with your squad (2–4 members) under a shared team name.
+              </p>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; color:var(--accent-cyan); font-weight:600;">
+              <input type="checkbox" id="event-reg-is-team-checkbox" onchange="togglePublicTeamFields()" style="width:16px; height:16px; accent-color:var(--accent-cyan);" />
+              Register as Team
+            </label>
+          </div>
+
+          <div id="event-reg-team-fields" style="display:none; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Team Name <span style="color:var(--accent-red);">*</span></label>
+              <input type="text" class="form-control" id="event-reg-team-name" placeholder="e.g. Silicon Crusaders, Byte Busters" />
+            </div>
+
+            <label class="form-label" style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span>Teammates (USN & Name)</span>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Max 3 additional members</span>
+            </label>
+            <div id="event-reg-teammates-list" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- Dynamic teammate inputs -->
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addPublicTeammateInput()" style="margin-top:8px;">
+              ➕ Add Teammate
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top:20px; padding:12px 0 0; border-top:1px solid var(--border);">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('event-registration-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="event-confirm-reg-btn">
+            🎟️ Confirm Registration & Get Pass
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Holographic Digital Ticket Pass & QR Code Modal -->
+<div class="modal-overlay" id="event-ticket-modal">
+  <div class="modal" style="max-width: 500px; background: transparent; border: none; box-shadow: none; padding: 0;">
+    <div class="ticket-pass-wrapper">
+      <div class="ticket-hologram-card">
+        <!-- Notch cutouts -->
+        <div class="ticket-notch-left"></div>
+        <div class="ticket-notch-right"></div>
+
+        <!-- Header band -->
+        <div class="ticket-header-band">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <span id="event-ticket-type-badge" class="badge badge-cyan">💻 CODING</span>
+              <div id="event-ticket-club-name" style="font-size:0.75rem; color:var(--accent-blue); font-weight:700; margin-top:4px;">CODING CLUB</div>
+              <h2 id="event-ticket-title" style="font-size:1.25rem; font-weight:800; color:#fff; margin-top:4px;">Hackathon 2026</h2>
+            </div>
+            <button onclick="closeModal('event-ticket-modal')" style="background:transparent; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;">✕</button>
+          </div>
+          <div style="margin-top:10px; display:flex; gap:12px; font-size:0.8rem; color:var(--text-secondary);">
+            <span id="event-ticket-date">📅 20 Sep 2026</span>
+            <span id="event-ticket-time">⏰ 10:00 AM</span>
+            <span id="event-ticket-venue">📍 Lab 4</span>
+          </div>
+        </div>
+
+        <!-- Body content -->
+        <div class="ticket-body-content">
+          <!-- Team Banner -->
+          <div id="event-ticket-team-banner" style="display:none; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.4); border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:0.82rem; color:#c7d2fe;">
+            🚀 Team: <strong id="event-ticket-team-name" style="color:#ffffff;">—</strong>
+            <div id="event-ticket-team-members" style="font-size:0.75rem; color:#94a3b8; margin-top:3px;"></div>
+          </div>
+          <div class="ticket-field-row">
+            <div>
+              <div class="ticket-field-label">Attendee</div>
+              <div class="ticket-field-val" id="event-ticket-student-name">Student</div>
+            </div>
+            <div>
+              <div class="ticket-field-label">USN / ID</div>
+              <div class="ticket-field-val" id="event-ticket-student-usn">USN</div>
+            </div>
+          </div>
+
+          <div class="ticket-field-row">
+            <div>
+              <div class="ticket-field-label">Department</div>
+              <div class="ticket-field-val" id="event-ticket-dept" style="font-size:0.85rem;">Computer Science</div>
+            </div>
+            <div>
+              <div class="ticket-field-label">Status</div>
+              <div id="event-ticket-status-badge"><span class="badge badge-green">✓ CONFIRMED</span></div>
+            </div>
+          </div>
+
+          <!-- QR Code Ticket Section -->
+          <div class="ticket-qr-section">
+            <div class="ticket-qr-box" id="event-ticket-qr-box"></div>
+            <div class="ticket-reg-code" id="event-ticket-reg-number">REG-2026-00182</div>
+            <small style="color:var(--text-muted); font-size:0.72rem; margin-top:4px;">Present this digital pass at the venue entrance for check-in</small>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <button class="btn btn-secondary" style="flex:1;" onclick="window.print()">🖨️ Print Pass</button>
+            <button class="btn btn-primary" style="flex:1;" onclick="closeModal('event-ticket-modal'); window.location.href='/user.html';">📊 Open Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth.js?v=20260905_v5"></script>
+<script src="/js/home.js?v=20260905_v5"></script>
 </body>
 </html>

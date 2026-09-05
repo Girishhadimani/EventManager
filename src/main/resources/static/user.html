@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLS GIT Belgaum — Student Portal</title>
+  <link rel="icon" type="image/png" href="/images/kls_git_logo.png" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="dashboard">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="/images/kls_git_logo.png" alt="KLS GIT" style="width:38px; height:38px; border-radius:50%; object-fit:contain; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;" />
+        <div class="logo-text">
+          <h2>KLS GIT</h2>
+          <span>Student Portal</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" style="background: var(--gradient-user);" id="user-avatar">U</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Student</div>
+        <div class="user-role">USER</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Explore</div>
+      <div class="nav-item active" onclick="showSection('events')">
+        <span class="nav-icon">🎯</span> Browse Events
+      </div>
+      <div class="nav-item" onclick="showSection('clubs')">
+        <span class="nav-icon">🏛</span> Clubs
+      </div>
+
+      <div class="nav-section-title">My Activity</div>
+      <div class="nav-item" onclick="showSection('my-registrations')">
+        <span class="nav-icon">📋</span> My Registrations
+      </div>
+      <div class="nav-item" onclick="showSection('certificates')">
+        <span class="nav-icon">🎓</span> Certificates & Verification
+      </div>
+      <div class="nav-item" onclick="showSection('vtu-points')">
+        <span class="nav-icon">📊</span> VTU Activity Points
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn btn-secondary" style="width:100%;" onclick="logout()">
+        🚪 Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="page-title">Browse Events</h1>
+        <p id="page-subtitle">Discover, register, and participate using integrated event tools</p>
+      </div>
+      <div class="topbar-actions">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="🔍 Search events..."
+          oninput="filterEvents()"
+          style="background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 9px 14px; color: var(--text-primary); font-family:inherit; font-size:0.875rem; width: 220px; outline:none;"
+        />
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Browse Events -->
+      <div id="section-events">
+        <div id="events-grid" class="events-grid">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-icon">⏳</div>
+            <p>Loading events...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clubs Section -->
+      <div id="section-clubs" style="display:none;">
+        <div class="events-grid" id="clubs-grid"></div>
+      </div>
+
+      <!-- My Registrations -->
+      <div id="section-my-registrations" style="display:none;">
+        <div class="card">
+          <div class="card-header"><h2>My Registered Events & Workspaces</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Ticket / Reg #</th>
+                  <th>Event</th>
+                  <th>Club</th>
+                  <th>Date & Venue</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="my-reg-tbody"></tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certificates & Verification Section -->
+      <div id="section-certificates" style="display:none;">
+        <!-- Card 1: Direct Credential Verifier -->
+        <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(30,27,75,0.4), rgba(15,23,42,0.8));">
+          <div class="card-header">
+            <div>
+              <h2 style="margin:0;">🛡️ Institutional Credential Verification</h2>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0;">
+                Verify any KLS GIT event certificate or credential hash against our official academic & club activity registry.
+              </p>
+            </div>
+          </div>
+          <div style="padding: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <input 
+              type="text" 
+              id="dash-cert-hash-input" 
+              placeholder="Enter Certificate ID / Checksum (e.g. CERT-14-4-... or UUID hash)" 
+              style="flex:1; min-width:280px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 16px; color:var(--text-primary); font-family:monospace; font-size:0.9rem;"
+            />
+            <button class="btn btn-primary" onclick="verifyCertificateInDashboard()">
+              🔍 Verify Credential
+            </button>
+          </div>
+          <div id="dash-cert-result" style="padding: 0 20px 20px; display:none;"></div>
+        </div>
+
+        <!-- Card 2: My Earned Certificates -->
+        <div class="card">
+          <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h2 style="margin:0;">🎓 My Earned Certificates</h2>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0;">
+                Official participation and merit certificates issued by KLS GIT Belgaum for your events.
+              </p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="loadMyCertificatesTab()">🔄 Refresh</button>
+          </div>
+          <div style="padding: 20px;" id="my-certificates-container">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <p>Loading your certificates...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VTU AICTE 100 Activity Points Section -->
+      <div id="section-vtu-points" style="display:none;">
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge badge-purple" style="font-size:0.75rem;">VTU Mandate</span>
+                <span class="badge badge-green" id="vtu-status-badge">● ON TRACK</span>
+              </div>
+              <h2 style="margin:6px 0 2px;">🎓 VTU AICTE 100 Activity Points Tracker</h2>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:0;">
+                Official activity record for Visvesvaraya Technological University (VTU) B.E./B.Tech degree conferral.
+              </p>
+            </div>
+            <button class="btn btn-primary" onclick="openVtuTranscriptModal()">
+              📜 View / Download Official Transcript
+            </button>
+          </div>
+
+          <div style="padding:24px;">
+            <!-- Progress Meter -->
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+                <div>
+                  <span style="font-size:2.2rem; font-weight:800; color:var(--accent-cyan);" id="vtu-total-pts-display">0</span>
+                  <span style="font-size:1.1rem; color:var(--text-muted); font-weight:600;"> / 100 Points Earned</span>
+                </div>
+                <div style="font-weight:700; font-size:1.2rem; color:var(--accent-green);" id="vtu-pct-display">0%</div>
+              </div>
+              <div class="capacity-bar-track" style="height:14px; border-radius:7px; background:rgba(255,255,255,0.08);">
+                <div id="vtu-progress-fill" class="vtu-shimmer-bar" style="width:0%; height:100%; border-radius:7px; background:linear-gradient(90deg, #3b82f6, #06b6d4, #10b981); transition:width 0.8s cubic-bezier(0.4,0,0.2,1);"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.75rem; color:var(--text-muted);">
+                <span>0 Points</span>
+                <span>50 Points (Midpoint)</span>
+                <span>100 Points (VTU Graduation Target)</span>
+              </div>
+            </div>
+
+            <!-- Category Breakdown Cards -->
+            <h3 style="font-size:1rem; margin-bottom:14px; color:var(--text-primary);">Points Earned by Activity Category</h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:28px;" id="vtu-category-cards">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Verified Activity History Ledger -->
+            <h3 style="font-size:1rem; margin-bottom:12px; color:var(--text-primary);">Audited Activity Ledger & Verification Codes</h3>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Event Title</th>
+                    <th>Category</th>
+                    <th>Organizing Club</th>
+                    <th>Event Date</th>
+                    <th>Points Earned</th>
+                    <th>VTU Verification Code</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="vtu-ledger-tbody">
+                  <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">Loading activity ledger...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rich Event Detail Modal -->
+<div class="modal-overlay" id="event-detail-modal">
+  <div class="modal modal-lg" style="max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal-header" style="flex-shrink: 0; padding-bottom: 12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="detail-type-badge" class="badge badge-purple">Event Type</span>
+        <span id="detail-club-badge" class="badge badge-blue">Club</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('event-detail-modal')">✕</button>
+    </div>
+
+    <div style="overflow-y: auto; padding: 10px 4px; flex: 1;" id="detail-modal-content">
+      <!-- Injected by openEventDetails(eventId) -->
+    </div>
+
+    <div class="modal-footer" id="detail-modal-footer" style="flex-shrink: 0; padding-top: 14px; border-top: 1px solid var(--border);">
+      <button type="button" class="btn btn-secondary" onclick="closeModal('event-detail-modal')">Close</button>
+    </div>
+  </div>
+<!-- Rich Club Detail Modal -->
+<div class="modal-overlay" id="club-detail-modal">
+  <div class="modal modal-lg" style="max-height: 90vh; display: flex; flex-direction: column; max-width: 740px;">
+    <div class="modal-header" style="flex-shrink: 0; padding-bottom: 14px; border-bottom: 1px solid var(--border);">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div id="club-detail-icon" style="font-size:2rem; width:52px; height:52px; border-radius:14px; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; border:1px solid rgba(99,102,241,0.3); flex-shrink:0;">🏛️</div>
+        <div>
+          <h2 id="club-detail-name" style="margin:0; font-size:1.3rem;">Club Details</h2>
+          <span id="club-detail-category" class="badge badge-purple" style="margin-top:4px; display:inline-block;">Technical Society</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('club-detail-modal')">✕</button>
+    </div>
+
+    <div style="overflow-y: auto; padding: 16px 4px; flex: 1;" id="club-detail-content">
+      <!-- Injected by openClubDetails(clubId) -->
+    </div>
+
+    <div class="modal-footer" id="club-detail-footer" style="flex-shrink: 0; padding-top: 14px; border-top: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <button type="button" id="club-detail-follow-btn" class="btn btn-secondary" onclick="toggleFollowClubModal()">⭐ Follow Club</button>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('club-detail-modal')">Close</button>
+        <button type="button" id="club-detail-events-btn" class="btn btn-primary">📅 View Club Events</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dynamic Event Registration Modal -->
+<div class="modal-overlay" id="registration-modal">
+  <div class="modal" style="max-width: 640px; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal-header" style="flex-shrink: 0;">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <span id="reg-event-type-badge" class="badge badge-purple">💻 CODING</span>
+          <span id="reg-club-badge" class="badge badge-blue">Club</span>
+        </div>
+        <h2 id="reg-event-title" style="font-size:1.3rem;">Event Registration</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal('registration-modal')">✕</button>
+    </div>
+
+    <div style="overflow-y: auto; padding: 10px 4px; flex: 1;">
+      <!-- Capacity & Deadline Banner -->
+      <div id="reg-capacity-banner" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 18px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; color:var(--accent-cyan); margin-bottom:6px;">
+          <span id="reg-capacity-count">👥 0 / 100 Seats Filled</span>
+          <span id="reg-deadline-text">📅 Open</span>
+        </div>
+        <div class="capacity-bar-track">
+          <div class="capacity-bar-fill" id="reg-capacity-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <form id="event-reg-form" onsubmit="submitDynamicRegistration(event)">
+        <!-- 1. Student Academic Details -->
+        <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+          1. Student Academic Details
+        </h3>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="reg-name" readonly style="opacity:0.8; cursor:not-allowed;" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">College Email</label>
+            <input type="email" class="form-control" id="reg-email" readonly style="opacity:0.8; cursor:not-allowed;" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Contact Phone *</label>
+            <input type="tel" class="form-control" id="reg-phone" placeholder="9876543210" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">USN / Student ID *</label>
+            <input type="text" class="form-control" id="reg-usn" placeholder="e.g. 4XX22CS045" required />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select class="form-control" id="reg-dept" required>
+              <option value="">Select Department</option>
+              <option value="Computer Science & Engineering">Computer Science & Eng</option>
+              <option value="Information Science & Engineering">Information Science & Eng</option>
+              <option value="Electronics & Communication">Electronics & Comm</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Master of Business Admin (MBA)">MBA</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Academic Year *</label>
+            <select class="form-control" id="reg-year" required>
+              <option value="">Select Year</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Postgraduate">Postgraduate</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Dynamic Event-Type Specific Questions -->
+        <div id="dynamic-reg-section" style="margin-top:16px;">
+          <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+            2. Event Participation Requirements
+          </h3>
+          <div id="dynamic-questions-container">
+            <!-- Dynamically populated based on eventType -->
+          </div>
+        </div>
+
+        <!-- 3. Team / Group Registration (For Hackathons & Team Events) -->
+        <div id="reg-team-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div>
+              <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin:0;">
+                👥 Team / Group Registration
+              </h3>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin:2px 0 0;">
+                Register with your squad (2–4 members) under a shared team name.
+              </p>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; color:var(--accent-cyan); font-weight:600;">
+              <input type="checkbox" id="reg-is-team-checkbox" onchange="toggleTeamRegistrationFields()" style="width:16px; height:16px; accent-color:var(--accent-cyan);" />
+              Register as Team
+            </label>
+          </div>
+
+          <div id="reg-team-fields" style="display:none; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Team Name <span style="color:var(--accent-red);">*</span></label>
+              <input type="text" class="form-control" id="reg-team-name" placeholder="e.g. Silicon Crusaders, Byte Busters" />
+            </div>
+
+            <label class="form-label" style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span>Teammates (USN & Name)</span>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Max 3 additional members</span>
+            </label>
+            <div id="reg-teammates-list" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- Dynamic teammate inputs -->
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addTeammateInput()" style="margin-top:8px;">
+              ➕ Add Teammate
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top:20px; padding:12px 0 0; border-top:1px solid var(--border);">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('registration-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="confirm-reg-btn">
+            🎟️ Confirm Registration & Get Pass
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Holographic Digital Ticket Pass & QR Code Modal -->
+<div class="modal-overlay" id="ticket-pass-modal">
+  <div class="modal" style="max-width: 500px; background: transparent; border: none; box-shadow: none; padding: 0;">
+    <div class="ticket-pass-wrapper">
+      <div class="ticket-hologram-card">
+        <!-- Notch cutouts -->
+        <div class="ticket-notch-left"></div>
+        <div class="ticket-notch-right"></div>
+
+        <!-- Header band -->
+        <div class="ticket-header-band">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <span id="ticket-event-type-badge" class="badge badge-cyan">💻 CODING</span>
+              <div id="ticket-club-name" style="font-size:0.75rem; color:var(--accent-blue); font-weight:700; margin-top:4px;">CODING CLUB</div>
+              <h2 id="ticket-event-title" style="font-size:1.25rem; font-weight:800; color:#fff; margin-top:4px;">Hackathon 2026</h2>
+            </div>
+            <button onclick="closeModal('ticket-pass-modal')" style="background:transparent; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;">✕</button>
+          </div>
+          <div style="margin-top:10px; display:flex; gap:12px; font-size:0.8rem; color:var(--text-secondary);">
+            <span id="ticket-date">📅 20 Sep 2026</span>
+            <span id="ticket-time">⏰ 10:00 AM</span>
+            <span id="ticket-venue">📍 Lab 4</span>
+          </div>
+        </div>
+
+        <!-- Body content -->
+        <div class="ticket-body-content">
+          <!-- Team Banner (if team registration) -->
+          <div id="ticket-team-banner" style="display:none; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.4); border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:0.82rem; color:#c7d2fe;">
+            🚀 Team: <strong id="ticket-team-name" style="color:#ffffff;">—</strong>
+            <div id="ticket-team-members" style="font-size:0.75rem; color:#94a3b8; margin-top:3px;"></div>
+          </div>
+          <div class="ticket-field-row">
+            <div>
+              <div class="ticket-field-label">Attendee</div>
+              <div class="ticket-field-val" id="ticket-student-name">Girish Hadimani</div>
+            </div>
+            <div>
+              <div class="ticket-field-label">USN / ID</div>
+              <div class="ticket-field-val" id="ticket-student-usn">4XX22CS045</div>
+            </div>
+          </div>
+
+          <div class="ticket-field-row">
+            <div>
+              <div class="ticket-field-label">Department</div>
+              <div class="ticket-field-val" id="ticket-dept" style="font-size:0.85rem;">Computer Science</div>
+            </div>
+            <div>
+              <div class="ticket-field-label">Status</div>
+              <div id="ticket-status-badge"><span class="badge badge-green">✓ CONFIRMED</span></div>
+            </div>
+          </div>
+
+          <!-- QR Code Ticket Section -->
+          <div class="ticket-qr-section">
+            <div class="ticket-qr-box" id="ticket-qr-box">
+              <!-- SVG QR will be rendered here -->
+            </div>
+            <div class="ticket-reg-code" id="ticket-reg-number">REG-2026-00182</div>
+            <small style="color:var(--text-muted); font-size:0.72rem; margin-top:4px;">Present this digital pass at the venue entrance for check-in</small>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <button class="btn btn-secondary" style="flex:1;" onclick="window.print()">🖨️ Print Pass</button>
+            <button class="btn btn-primary" style="flex:1;" onclick="closeModal('ticket-pass-modal'); showSection('my-registrations');">📋 My Registrations</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERACTIVE EVENT TOOL ENGINE WORKSPACE MODAL -->
+<div class="modal-overlay" id="event-workspace-modal">
+  <div class="modal modal-xl">
+    <div class="modal-header" style="padding-bottom:12px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <span id="ws-event-type-badge" class="badge badge-purple">💻 CODING</span>
+          <span id="ws-club-badge" class="badge badge-blue">Coding Club</span>
+        </div>
+        <h2 id="ws-event-title" style="font-size:1.35rem;">Event Workspace</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal('event-workspace-modal')">✕</button>
+    </div>
+
+    <!-- Workspace Tabs -->
+    <div class="workspace-tabs" id="ws-tabs-bar">
+      <button class="ws-tab active" id="tab-btn-coding" onclick="switchWsTab('coding')">💻 Code Editor</button>
+      <button class="ws-tab" id="tab-btn-quiz" onclick="switchWsTab('quiz')">🧠 Quiz Engine</button>
+      <button class="ws-tab" id="tab-btn-design" onclick="switchWsTab('design')">🎨 Poster Canvas</button>
+      <button class="ws-tab" id="tab-btn-hackathon" onclick="switchWsTab('hackathon')">🚀 Project Hub</button>
+      <button class="ws-tab" id="tab-btn-leaderboard" onclick="switchWsTab('leaderboard')">🏆 Leaderboard</button>
+    </div>
+
+    <!-- 1. CODING ENGINE PANEL -->
+    <div id="ws-panel-coding" class="ws-panel">
+      <div class="coding-container">
+        <!-- Problem Description -->
+        <div class="problem-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size:1.1rem; color:var(--text-primary);">Two Sum Target Challenge</h3>
+            <span class="badge badge-green" style="font-size:0.75rem;">Easy • 100 Pts</span>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
+            Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.
+          </p>
+          <div style="background:rgba(255,255,255,0.04); border-radius:6px; padding:10px; font-size:0.8rem; font-family:Consolas, monospace;">
+            <strong>Example 1:</strong><br/>
+            Input: nums = [2,7,11,15], target = 9<br/>
+            Output: [0,1]<br/>
+            Explanation: nums[0] + nums[1] == 9, return [0, 1].
+          </div>
+          <div style="background:rgba(255,255,255,0.04); border-radius:6px; padding:10px; font-size:0.8rem; font-family:Consolas, monospace;">
+            <strong>Constraints:</strong><br/>
+            • 2 &lt;= nums.length &lt;= 10⁴<br/>
+            • -10⁹ &lt;= nums[i] &lt;= 10⁹<br/>
+            • Only one valid answer exists.
+          </div>
+        </div>
+
+        <!-- Code Editor & Output -->
+        <div class="editor-panel">
+          <div class="editor-toolbar">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.8rem; color:var(--text-muted);">Language:</span>
+              <select id="code-lang-select" onchange="changeCodeLanguage()" style="background:#0d1117; color:#58a6ff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:3px 8px; font-size:0.8rem;">
+                <option value="python">Python 3</option>
+                <option value="java">Java 21</option>
+                <option value="cpp">C++ 17</option>
+                <option value="javascript">JavaScript (Node)</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-sm btn-secondary" onclick="runCode(false)">▶ Run Tests</button>
+              <button class="btn btn-sm btn-primary" onclick="runCode(true)">🚀 Submit Solution</button>
+            </div>
+          </div>
+          <textarea id="code-editor" class="code-textarea" spellcheck="false"></textarea>
+          <div class="console-output" id="code-console">
+--- Ready to Compile & Execute ---
+Select a language, write your code, and click "Run Tests".
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. QUIZ ENGINE PANEL -->
+    <div id="ws-panel-quiz" class="ws-panel" style="display:none;">
+      <div class="quiz-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <span style="font-size:0.85rem; color:var(--text-muted);">Question <span id="quiz-q-num">1</span> of <span id="quiz-q-total">5</span></span>
+            <h3 id="quiz-q-text" style="font-size:1.1rem; color:var(--text-primary); margin-top:4px;">Loading question...</h3>
+          </div>
+          <div class="quiz-timer-badge">
+            ⏱️ <span id="quiz-timer">00:30</span>
+          </div>
+        </div>
+
+        <div id="quiz-options-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+          <button class="btn btn-secondary btn-sm" id="quiz-prev-btn" onclick="quizPrevQuestion()">← Previous</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="quiz-next-btn" onclick="quizNextQuestion()">Next →</button>
+            <button class="btn btn-primary btn-sm" id="quiz-submit-btn" onclick="submitQuizAnswers()">Submit Quiz</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="quiz-results-container" style="display:none; background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-md); padding:20px;">
+        <!-- Results summary populated after submit -->
+      </div>
+    </div>
+
+    <!-- 3. POSTER / DESIGN CANVAS STUDIO -->
+    <div id="ws-panel-design" class="ws-panel" style="display:none;">
+      <div class="canvas-studio-container">
+        <div class="canvas-toolbar">
+          <button class="btn btn-sm btn-secondary" onclick="addCanvasText('Headline Title', 36, '#ffffff')">➕ Add Headline</button>
+          <button class="btn btn-sm btn-secondary" onclick="addCanvasText('Event Date & Venue', 20, '#38bdf8')">➕ Add Subtitle</button>
+          <button class="btn btn-sm btn-secondary" onclick="addCanvasShape('rect')">⬛ Rectangle</button>
+          <button class="btn btn-sm btn-secondary" onclick="addCanvasShape('circle')">⚪ Circle</button>
+          <button class="btn btn-sm btn-secondary" onclick="addCanvasShape('badge')">⭐ Star Badge</button>
+
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label style="font-size:0.75rem; color:var(--text-muted);">Background:</label>
+            <input type="color" id="canvas-bg-color" value="#0f172a" onchange="setCanvasBackground(this.value)" style="width:30px; height:26px; border:none; background:transparent; cursor:pointer;" />
+          </div>
+
+          <button class="btn btn-sm btn-secondary" onclick="clearCanvas()">🗑️ Clear</button>
+          <div style="flex:1;"></div>
+          <button class="btn btn-sm btn-secondary" onclick="downloadPoster()">⬇ Download PNG</button>
+          <button class="btn btn-sm btn-primary" onclick="submitPosterDesign()">🚀 Submit Poster</button>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="poster-canvas" width="800" height="480"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. HACKATHON & PROJECT HUB -->
+    <div id="ws-panel-hackathon" class="ws-panel" style="display:none;">
+      <div style="background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-md); padding:24px; max-width:760px; margin:0 auto;">
+        <h3 style="font-size:1.1rem; color:var(--text-primary); margin-bottom:6px;">🚀 Project & Hackathon Submission Hub</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:20px;">
+          Submit your team project, code repository, and live demonstration links for judge evaluation.
+        </p>
+
+        <form id="hackathon-submit-form" onsubmit="event.preventDefault(); submitHackathonProject();">
+          <div class="two-col">
+            <div class="form-group">
+              <label>Team Name *</label>
+              <div class="input-wrapper">
+                <span class="input-icon">👥</span>
+                <input type="text" id="hk-team-name" placeholder="e.g. CyberKnights" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Team Members (Names / Roll Nos)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">👤</span>
+                <input type="text" id="hk-team-members" placeholder="e.g. Rahul, Priya, Amit" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Project Title *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">💡</span>
+              <input type="text" id="hk-project-title" placeholder="e.g. AI-Powered Smart Campus Navigation" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Project Description & Tech Stack *</label>
+            <textarea id="hk-project-desc" placeholder="Problem solved, architecture, technologies used (Spring Boot, React, AI)..." rows="3" required></textarea>
+          </div>
+
+          <div class="two-col">
+            <div class="form-group">
+              <label>GitHub Repository URL *</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🐙</span>
+                <input type="url" id="hk-github-url" placeholder="https://github.com/..." required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Live Demo URL</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🌐</span>
+                <input type="url" id="hk-demo-url" placeholder="https://..." />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Video Demo URL (YouTube / Loom / Drive)</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🎥</span>
+              <input type="url" id="hk-video-url" placeholder="https://youtube.com/..." />
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+            <button type="submit" class="btn btn-primary">Submit for Judging 🚀</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 5. REAL-TIME LEADERBOARD PANEL -->
+    <div id="ws-panel-leaderboard" class="ws-panel" style="display:none;">
+      <div class="podium-grid" id="leaderboard-podium">
+        <div class="podium-card" style="border-color:rgba(148,163,184,0.4);">
+          <div class="podium-rank">🥈</div>
+          <div style="font-weight:700;" id="podium-2-name">—</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);" id="podium-2-score">—</div>
+        </div>
+        <div class="podium-card" style="border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.06); transform:translateY(-8px);">
+          <div class="podium-rank">🥇</div>
+          <div style="font-weight:700; color:var(--accent-amber);" id="podium-1-name">—</div>
+          <div style="font-size:0.75rem; color:var(--accent-amber);" id="podium-1-score">—</div>
+        </div>
+        <div class="podium-card" style="border-color:rgba(205,127,50,0.4);">
+          <div class="podium-rank">🥉</div>
+          <div style="font-weight:700;" id="podium-3-name">—</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);" id="podium-3-score">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Participant / Team</th>
+                <th>Submission</th>
+                <th>Type</th>
+                <th>Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody">
+              <tr><td colspan="6" style="text-align:center;">Loading leaderboard rankings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Competition Tool Waiting Room Modal -->
+<div class="modal-overlay" id="waiting-room-modal">
+  <div class="modal-card" style="max-width: 580px;">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="/images/kls_git_logo.png" alt="KLS GIT" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:#fff; padding:1px; flex-shrink:0;" />
+        <div>
+          <h3 style="margin:0; font-size:1.15rem;">KLS GIT Belgaum</h3>
+          <p style="margin:0; font-size:0.75rem; color:var(--text-muted);">Competition Gated Tool Access</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeWaitingRoom()">&times;</button>
+    </div>
+    <div class="modal-body waiting-room-card">
+      <div class="waiting-pulse-ring">🔒</div>
+      <span class="badge badge-yellow" id="waiting-status-badge" style="font-size:0.85rem; padding:6px 14px; margin-bottom:14px;">
+        Tools Locked Until Event Time
+      </span>
+      <h2 style="font-size:1.4rem; font-weight:800; margin: 12px 0 6px;" id="waiting-event-title">Event Title</h2>
+      <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:18px;" id="waiting-club-name">Club Name</p>
+
+      <div style="background:var(--bg-primary); border:1px solid var(--border); border-radius:12px; padding:16px; margin: 0 auto 20px; max-width:440px; text-align:left; font-size:0.85rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="color:var(--text-muted);">Event Date:</span>
+          <strong id="waiting-event-date">—</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="color:var(--text-muted);">Competition Window:</span>
+          <strong id="waiting-event-time">—</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text-muted);">Live Sync Status:</span>
+          <span style="color:#38bdf8; font-weight:600;" id="waiting-sync-status">📡 Polling coordinator unlock signal...</span>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); font-size:0.82rem; line-height:1.5; max-width:440px; margin: 0 auto 20px;">
+        The event coordinator unlocks competition tools (Code Editor, Quiz Engine, Design Studio, Submissions) on event day at the scheduled start time. You will be automatically redirected into the live workspace the moment tools are opened.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button class="btn btn-primary btn-sm" onclick="checkWaitingRoomStatusNow()">
+          🔄 Check Unlock Status
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="closeWaitingRoom()">
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Certificate Viewer & Print Modal -->
+<div class="modal-overlay" id="certificate-viewer-modal">
+  <div class="modal-card" style="max-width: 840px;">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.4rem;">🎓</span>
+        <h3 style="margin:0;">Official Academic Certificate</h3>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn btn-primary btn-sm" onclick="printCertificate()">🖨️ Print / Save PDF</button>
+        <button class="modal-close" onclick="closeModal('certificate-viewer-modal')">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body" id="certificate-viewer-body" style="padding:20px; background: #0b0f19;">
+      <!-- Dynamic Certificate HTML inserted here -->
+    </div>
+  </div>
+</div>
+
+<!-- Official VTU AICTE Activity Points Transcript Modal -->
+<div class="modal-overlay" id="vtu-transcript-modal">
+  <div class="modal modal-lg" style="max-width:860px; max-height:92vh; display:flex; flex-direction:column; background: #0f172a;">
+    <div class="modal-header" style="flex-shrink:0; border-bottom:1px solid var(--border);">
+      <div>
+        <span class="badge badge-purple">Official Academic Record</span>
+        <h2 style="margin:4px 0 0; font-size:1.3rem;">VTU AICTE Activity Points Official Transcript</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal('vtu-transcript-modal')">✕</button>
+    </div>
+
+    <div style="overflow-y:auto; padding:20px 16px; flex:1;" id="vtu-transcript-print-area">
+      <!-- Printable Formal Document Container -->
+      <div class="transcript-paper" style="background:#ffffff; color:#0f172a; padding:32px 28px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); font-family:'Inter', sans-serif;">
+        <!-- Institution Header -->
+        <div style="display:flex; align-items:center; gap:18px; border-bottom:2px solid #0f172a; padding-bottom:16px; margin-bottom:18px;">
+          <img src="/images/git_logo_transparent.png" style="width:70px; height:70px; object-fit:contain; border-radius:50%;" alt="KLS GIT Logo" />
+          <div style="flex:1;">
+            <h1 style="font-size:1.25rem; margin:0; text-transform:uppercase; letter-spacing:0.5px; color:#1e293b; font-weight:800;">
+              Karnatak Law Society's Gogte Institute of Technology
+            </h1>
+            <div style="font-size:0.85rem; color:#475569; margin-top:3px; font-weight:600;">
+              (An Autonomous Institution under Visvesvaraya Technological University, Belagavi)
+            </div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
+              "Jnana Ganga", Udyambag, Belagavi - 590008, Karnataka, India • www.git.edu
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center; margin-bottom:18px;">
+          <h2 style="font-size:1.1rem; margin:0; text-transform:uppercase; color:#0f172a; font-weight:800; letter-spacing:1px; text-decoration:underline;">
+            AICTE Activity Points Record & Evaluation Transcript
+          </h2>
+          <div style="font-size:0.78rem; color:#64748b; margin-top:4px;">
+            Official Transcript for Degree Conferral Requirement as per VTU Regulations
+          </div>
+        </div>
+
+        <!-- Student Info Box -->
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem;">
+          <div><strong style="color:#334155;">Student Name:</strong> <span id="trans-student-name" style="color:#0f172a; font-weight:700;">—</span></div>
+          <div><strong style="color:#334155;">University Seat No (USN):</strong> <span id="trans-student-usn" style="color:#0f172a; font-weight:800; font-family:monospace;">—</span></div>
+          <div><strong style="color:#334155;">Department:</strong> <span id="trans-student-dept" style="color:#0f172a;">—</span></div>
+          <div><strong style="color:#334155;">Academic Year:</strong> <span id="trans-student-year" style="color:#0f172a;">—</span></div>
+          <div><strong style="color:#334155;">Issue Date:</strong> <span id="trans-issue-date" style="color:#0f172a;">—</span></div>
+          <div><strong style="color:#334155;">Transcript Hash:</strong> <span id="trans-hash" style="color:#2563eb; font-family:monospace; font-weight:700;">—</span></div>
+        </div>
+
+        <!-- Activity Table -->
+        <table style="width:100%; border-collapse:collapse; margin-bottom:18px; font-size:0.8rem; color:#1e293b;">
+          <thead>
+            <tr style="background:#e2e8f0; border-top:1px solid #94a3b8; border-bottom:1px solid #94a3b8; text-align:left;">
+              <th style="padding:7px 8px; border:1px solid #cbd5e1;">#</th>
+              <th style="padding:7px 8px; border:1px solid #cbd5e1;">Activity / Event Title</th>
+              <th style="padding:7px 8px; border:1px solid #cbd5e1;">Category</th>
+              <th style="padding:7px 8px; border:1px solid #cbd5e1;">Club / Organizer</th>
+              <th style="padding:7px 8px; border:1px solid #cbd5e1;">Date</th>
+              <th style="padding:7px 8px; border:1px solid #cbd5e1; text-align:center;">Points</th>
+              <th style="padding:7px 8px; border:1px solid #cbd5e1;">Verification Code</th>
+            </tr>
+          </thead>
+          <tbody id="trans-table-body">
+            <!-- Injected by JS -->
+          </tbody>
+          <tfoot>
+            <tr style="background:#f1f5f9; font-weight:800; border-top:2px solid #64748b;">
+              <td colspan="5" style="padding:8px 10px; text-align:right; border:1px solid #cbd5e1;">TOTAL AICTE ACTIVITY POINTS EARNED:</td>
+              <td id="trans-total-pts" style="padding:8px 10px; text-align:center; color:#16a34a; font-size:0.95rem; border:1px solid #cbd5e1;">0 / 100</td>
+              <td id="trans-status-text" style="padding:8px 10px; border:1px solid #cbd5e1; color:#0f172a;">ON TRACK</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Degree Eligibility Statement -->
+        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:6px; padding:8px 12px; margin-bottom:24px; font-size:0.8rem; color:#166534;" id="trans-eligibility-box">
+          <strong>✓ VTU Compliance Statement:</strong> Verified participation records in sanctioned academic, technical, cultural, and community activities at KLS GIT Belgaum.
+        </div>
+
+        <!-- Authorized Signatures -->
+        <div style="display:flex; justify-content:space-between; margin-top:30px; padding-top:16px; font-size:0.78rem; text-align:center; color:#334155;">
+          <div style="width:180px;">
+            <div style="height:30px; border-bottom:1px solid #64748b; margin-bottom:4px;"></div>
+            <strong>Student Signature</strong>
+          </div>
+          <div style="width:200px;">
+            <div style="height:30px; border-bottom:1px solid #64748b; margin-bottom:4px; font-family:'Courier New', monospace; color:#2563eb; font-weight:700; line-height:30px;">
+              DIGITALLY VERIFIED
+            </div>
+            <strong>Faculty Activity Coordinator</strong><br>
+            <span style="font-size:0.7rem; color:#64748b;">KLS GIT Student Clubs</span>
+          </div>
+          <div style="width:180px;">
+            <div style="height:30px; border-bottom:1px solid #64748b; margin-bottom:4px; font-family:'Courier New', monospace; color:#16a34a; font-weight:700; line-height:30px;">
+              SEAL ATTESTED
+            </div>
+            <strong>Dean (Academic Affairs)</strong><br>
+            <span style="font-size:0.7rem; color:#64748b;">KLS GIT Belagavi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="flex-shrink:0; border-top:1px solid var(--border); display:flex; justify-content:space-between;">
+      <button type="button" class="btn btn-secondary" onclick="closeModal('vtu-transcript-modal')">Close</button>
+      <button type="button" class="btn btn-primary" onclick="printVtuTranscript()">🖨️ Print Transcript / Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Post-Event Feedback & Rating Modal (Certificate Gate) -->
+<div class="modal-overlay" id="event-feedback-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div>
+        <span class="badge badge-purple">Feedback Required</span>
+        <h2 style="margin:4px 0 0; font-size:1.25rem;">Rate Your Event Experience</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal('event-feedback-modal')">✕</button>
+    </div>
+    <div style="padding:16px 0;">
+      <p style="color:var(--text-muted); font-size:0.88rem; margin:0 0 16px;">
+        To download and verify your official Certificate of Completion, please take a moment to rate and review <strong id="feedback-event-title" style="color:var(--text-primary);">this event</strong>.
+      </p>
+
+      <form id="event-feedback-form" onsubmit="submitEventFeedback(event)">
+        <input type="hidden" id="feedback-event-id" />
+        <div style="text-align:center; margin-bottom:20px;">
+          <label style="display:block; font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px; font-weight:600;">Overall Rating</label>
+          <div class="star-rating-container" id="feedback-star-picker" style="font-size:2.2rem; cursor:pointer; display:inline-flex; gap:8px; user-select:none;">
+            <span data-star="1" onclick="selectStarRating(1)" onmouseover="hoverStarRating(1)" onmouseleave="resetStarHover()" style="color:#f59e0b; transition:transform 0.15s;">★</span>
+            <span data-star="2" onclick="selectStarRating(2)" onmouseover="hoverStarRating(2)" onmouseleave="resetStarHover()" style="color:#f59e0b; transition:transform 0.15s;">★</span>
+            <span data-star="3" onclick="selectStarRating(3)" onmouseover="hoverStarRating(3)" onmouseleave="resetStarHover()" style="color:#f59e0b; transition:transform 0.15s;">★</span>
+            <span data-star="4" onclick="selectStarRating(4)" onmouseover="hoverStarRating(4)" onmouseleave="resetStarHover()" style="color:#f59e0b; transition:transform 0.15s;">★</span>
+            <span data-star="5" onclick="selectStarRating(5)" onmouseover="hoverStarRating(5)" onmouseleave="resetStarHover()" style="color:#f59e0b; transition:transform 0.15s;">★</span>
+          </div>
+          <div id="feedback-rating-label" style="font-size:0.85rem; font-weight:700; color:var(--accent-cyan); margin-top:4px;">5 - Outstanding</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label class="form-label">Review & Key Takeaways</label>
+          <textarea class="form-control" id="feedback-comments-input" rows="3" placeholder="What did you learn? How was the organization, mentoring, or challenge?" style="resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('event-feedback-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submit-feedback-btn">Submit & Unlock Certificate 🎓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth.js?v=20260905_v5"></script>
+<script src="/js/user.js?v=20260905_v5"></script>
+</body>
+</html>

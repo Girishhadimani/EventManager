@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Public Certificate Verification — College Activity Hub</title>
+  <link rel="icon" type="image/png" href="/images/kls_git_logo.png" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .verify-hero {
+      text-align: center;
+      padding: 50px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .verify-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 40px;
+    }
+    .cert-display {
+      background: #ffffff;
+      color: #0f172a;
+      border: 8px double #4338ca;
+      border-radius: 14px;
+      padding: 40px;
+      margin: 20px auto;
+      max-width: 780px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    .cert-seal {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4338ca, #6366f1);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 16px auto;
+      box-shadow: 0 4px 14px rgba(67,56,202,0.4);
+    }
+    .cert-recipient {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1e1b4b;
+      text-decoration: underline;
+      text-decoration-color: #6366f1;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- Top Navigation -->
+<nav class="public-nav">
+  <div class="public-nav-inner">
+    <a href="/index.html" class="public-brand">
+      <img src="/images/kls_git_logo.png" alt="KLS GIT Logo" style="width:38px; height:38px; border-radius:50%; object-fit:contain; background:#fff; padding:1px; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;" />
+      <div>
+        <span class="brand-name" style="font-size:1.15rem; font-weight:800; display:block; line-height:1.2;">KLS GIT Belgaum</span>
+        <span style="font-size:0.68rem; color:var(--accent-cyan); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block;">Campus Activity Hub</span>
+      </div>
+    </a>
+    <div class="public-nav-links">
+      <a href="/index.html#events-section" class="nav-link">Events</a>
+      <a href="/index.html#clubs-section" class="nav-link">Clubs</a>
+      <a href="/index.html#calendar-section" class="nav-link">Calendar</a>
+      <a href="/verify-certificate.html" class="nav-link active" style="color:var(--primary);">Verify Certificate</a>
+    </div>
+    <div id="nav-auth-container"></div>
+  </div>
+</nav>
+
+<main class="page-container" style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
+
+  <div class="verify-hero">
+    <div style="font-size: 3rem; margin-bottom: 12px;">🛡️</div>
+    <h1 style="font-size: 2.3rem; font-weight: 800; margin-bottom: 10px;">Official Credential Verification</h1>
+    <p style="color: var(--text-secondary); font-size: 1.05rem; line-height: 1.6;">
+      Enter the unique certificate identifier printed on your institutional award or scan the QR code to verify credential authenticity.
+    </p>
+  </div>
+
+  <!-- Search form -->
+  <div class="verify-box">
+    <form id="verify-form" onsubmit="handleVerify(event)" style="display:flex; gap: 12px; flex-wrap: wrap;">
+      <div style="flex-grow: 1; min-width: 280px;">
+        <input 
+          type="text" 
+          id="cert-hash-input" 
+          placeholder="e.g. CERT-14-4-45395" 
+          required 
+          style="width:100%; padding: 14px 18px; font-size: 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-elevated); color: var(--text-primary); font-family: monospace;"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary" id="verify-btn" style="padding: 14px 28px; font-size: 1rem;">
+        🔍 Verify Credential
+      </button>
+    </form>
+    <div style="margin-top: 12px; font-size: 0.82rem; color: var(--text-muted); display:flex; gap: 16px; flex-wrap:wrap;">
+      <span>💡 Try sample verified ID: <a href="javascript:void(0)" onclick="quickTest('CERT-14-4-45395')" style="color:var(--primary); font-family:monospace;">CERT-14-4-45395</a></span>
+    </div>
+  </div>
+
+  <!-- Result Container -->
+  <div id="result-container"></div>
+
+</main>
+
+<script src="/js/auth.js"></script>
+<script>
+  // Update navbar
+  (function() {
+    const navAuth = document.getElementById('nav-auth-container');
+    if (navAuth) {
+      const token = getToken();
+      if (token) {
+        navAuth.innerHTML = `
+          <button class="btn btn-primary btn-sm" onclick="redirectByRole()">📊 My Dashboard</button>
+          <button class="btn btn-secondary btn-sm" onclick="logout()">Sign Out</button>
+        `;
+      } else {
+        navAuth.innerHTML = `
+          <a href="/index.html" class="btn btn-primary btn-sm">🔐 Sign In</a>
+        `;
+      }
+    }
+  })();
+
+  // Check URL query param ?hash=...
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const hash = params.get('hash');
+    if (hash) {
+      document.getElementById('cert-hash-input').value = hash;
+      verifyHash(hash);
+    }
+  });
+
+  function quickTest(hash) {
+    document.getElementById('cert-hash-input').value = hash;
+    verifyHash(hash);
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault();
+    const hash = document.getElementById('cert-hash-input').value.trim();
+    if (!hash) return;
+    await verifyHash(hash);
+  }
+
+  async function verifyHash(hash) {
+    const btn = document.getElementById('verify-btn');
+    const container = document.getElementById('result-container');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verifying...';
+
+    try {
+      const res = await fetch(`/api/certificates/verify/${encodeURIComponent(hash)}`);
+      const data = await res.json();
+
+      if (data.valid) {
+        container.innerHTML = `
+          <div style="text-align:center; margin-bottom: 20px;">
+            <span class="badge badge-green" style="font-size: 1rem; padding: 8px 18px;">
+              ✓ Institutional Record Verified & Cryptographically Valid
+            </span>
+          </div>
+
+          <div class="cert-display">
+            <div style="display:flex; justify-content:center; margin-bottom:10px;">
+              <img src="/images/kls_git_logo.png" alt="KLS GIT Official Emblem" style="width:72px; height:72px; border-radius:50%; object-fit:contain; background:#fff; padding:2px; box-shadow:0 4px 14px rgba(0,0,0,0.15);" />
+            </div>
+            <div style="font-size:0.85rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:#1e1b4b; margin-bottom:2px;">
+              KLS Gogte Institute of Technology, Belgaum
+            </div>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:14px;">
+              Autonomous Institute Affiliated to VTU Belagavi • NAAC A+ & NBA Accredited
+            </div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #1e1b4b; margin: 10px 0;">
+              ${data.certificateType || 'CERTIFICATE OF PARTICIPATION'}
+            </div>
+            <p style="color:#64748b; font-size:0.95rem; margin: 0;">This official credential is proudly presented to</p>
+            <div class="cert-recipient">${data.studentName}</div>
+            <p style="color:#334155; font-size:0.95rem; line-height:1.6; max-width: 580px; margin: 0 auto 20px auto;">
+              for exemplary participation and accomplishment in <strong>${data.eventTitle}</strong> organized by the <strong>${data.clubName}</strong>.
+            </p>
+            
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 20px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; text-align: left; font-size:0.85rem; color:#475569;">
+              <div><strong>Student ID / USN:</strong> ${data.usnOrStudentId}</div>
+              <div><strong>Recipient Email:</strong> ${data.studentEmail}</div>
+              <div><strong>Department:</strong> ${data.department}</div>
+              <div><strong>Issue Date:</strong> ${data.issueDate}</div>
+              <div><strong>Record ID:</strong> <span style="font-family:monospace; font-weight:bold;">${data.certificateHash}</span></div>
+              <div><strong>Registry Status:</strong> <span style="color:#16a34a; font-weight:bold;">ACTIVE & AUTHENTIC</span></div>
+            </div>
+
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; font-size:0.78rem; color:#64748b;">
+              <span>Dean of Student Welfare</span>
+              <span style="font-family:monospace; color:#4338ca;">SHA-256 VERIFIED CHECKSUM</span>
+              <span>Faculty Coordinator</span>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="card" style="padding: 30px; text-align: center; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.04);">
+            <div style="font-size: 2.4rem; margin-bottom: 10px;">❌</div>
+            <h3 style="color: var(--danger); margin-bottom: 8px;">Verification Failed</h3>
+            <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 16px auto;">
+              ${data.remarks || 'No valid collegiate credential matching the entered certificate identifier was found.'}
+            </p>
+            <span class="badge badge-red">Record Not Authenticated</span>
+          </div>
+        `;
+      }
+    } catch (err) {
+      container.innerHTML = `
+        <div class="card" style="padding: 24px; text-align:center; color:var(--danger);">
+          An error occurred while connecting to the institutional credential registry.
+        </div>
+      `;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🔍 Verify Credential';
+    }
+  }
+</script>
+</body>
+</html>

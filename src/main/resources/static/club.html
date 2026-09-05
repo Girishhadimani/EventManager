@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLS GIT Belgaum — Club Profile</title>
+  <link rel="icon" type="image/png" href="/images/kls_git_logo.png" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .club-hero {
+      position: relative;
+      background: linear-gradient(135deg, rgba(30,27,75,0.92), rgba(15,23,42,0.94)), url('/images/kls_git_campus.jpg') center/cover;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    }
+    .club-hero-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .club-avatar {
+      width: 88px;
+      height: 88px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+      border: 3px solid rgba(255,255,255,0.2);
+    }
+    .club-stats-bar {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      flex-wrap: wrap;
+    }
+    .club-stat-box {
+      display: flex;
+      flex-direction: column;
+    }
+    .club-stat-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .club-stat-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .leadership-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .leadership-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(99,102,241,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- Top Navigation -->
+<nav class="public-nav">
+  <div class="public-nav-inner">
+    <a href="/index.html" class="public-brand">
+      <img src="/images/kls_git_logo.png" alt="KLS GIT Logo" style="width:42px; height:42px; border-radius:50%; object-fit:contain; background:#fff; padding:1px; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;" />
+      <div>
+        <span class="brand-name" style="font-size:1.15rem; font-weight:800; display:block; line-height:1.2;">KLS GIT Belgaum</span>
+        <span style="font-size:0.68rem; color:var(--accent-cyan); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block;">Campus Activity Hub</span>
+      </div>
+    </a>
+    <div class="public-nav-links">
+      <a href="/index.html#events-section" class="nav-link">Upcoming Events</a>
+      <a href="/index.html#clubs-section" class="nav-link">Clubs & Societies</a>
+    </div>
+    <div id="nav-auth-container"></div>
+  </div>
+</nav>
+
+<main class="page-container" style="max-width: 1200px; margin: 30px auto; padding: 0 20px;">
+
+  <!-- Club Hero Banner -->
+  <section class="club-hero" id="club-hero">
+    <div class="club-hero-header">
+      <div class="club-avatar" id="club-avatar">🏛</div>
+      <div>
+        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 6px;">
+          <span class="badge badge-purple" id="club-category">Technical Society</span>
+          <span class="badge badge-green">✓ Verified Chapter</span>
+        </div>
+        <h1 id="club-name" style="margin:0; font-size:2.2rem; font-weight:800; color:#fff;">Loading Club...</h1>
+        <p id="club-desc" style="color:var(--text-secondary); max-width: 750px; margin-top: 10px; line-height: 1.6;">
+          Fetching official chapter metadata...
+        </p>
+      </div>
+    </div>
+
+    <div class="club-stats-bar">
+      <div class="club-stat-box">
+        <span class="club-stat-num" id="stat-club-events">0</span>
+        <span class="club-stat-lbl">Total Events</span>
+      </div>
+      <div class="club-stat-box">
+        <span class="club-stat-num" id="stat-club-followers">0</span>
+        <span class="club-stat-lbl">Active Members & Followers</span>
+      </div>
+      <div class="club-stat-box">
+        <span class="club-stat-num" id="stat-club-faculty">Faculty Led</span>
+        <span class="club-stat-lbl">Department Accreditation</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Navigation Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchClubTab('about', this)">📖 About & Overview</button>
+    <button class="tab-btn" onclick="switchClubTab('events', this)">📅 Upcoming Events</button>
+    <button class="tab-btn" onclick="switchClubTab('past', this)">🏁 Past Events</button>
+    <button class="tab-btn" onclick="switchClubTab('leadership', this)">👥 Leadership & Coordinators</button>
+    <button class="tab-btn" onclick="switchClubTab('announcements', this)">📢 Announcements</button>
+    <button class="tab-btn" onclick="switchClubTab('achievements', this)">🏆 Achievements</button>
+  </div>
+
+  <!-- Tab 0: About & Overview -->
+  <div id="tab-about" class="tab-content active">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+      <!-- Main Column -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Detailed Narrative Card -->
+        <div class="card" style="padding: 28px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="font-size: 1.8rem;" id="about-section-icon">📖</span>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin: 0;">About <span id="about-club-title">the Club</span></h2>
+          </div>
+          <p id="about-detailed-desc" style="color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; margin-bottom: 24px;">
+            Loading official chapter description...
+          </p>
+
+          <!-- Core Pillars / Activities -->
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin: 0 0 14px 0;">🎯 Core Activities & Domains</h3>
+          <div id="about-pillars-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Call to Action Banner -->
+        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); border: 1px solid rgba(99,102,241,0.3); border-radius: 16px; padding: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h3 style="margin: 0 0 4px 0; color: #fff; font-size: 1.15rem; font-weight: 700;">Interested in Participating?</h3>
+            <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Join campus workshops, competitive challenges, and certified collegiate events.</p>
+          </div>
+          <button class="btn btn-primary" onclick="switchClubTab('events', document.querySelectorAll('.tab-btn')[1])" style="white-space: nowrap;">
+            Explore Upcoming Events →
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar Column -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card" style="padding: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;">
+          <h3 style="font-size: 0.9rem; font-weight: 700; color: #fff; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Chapter Information</h3>
+          
+          <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.88rem;">
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: 700; letter-spacing: 0.5px;">Collegiate Affiliation</span>
+              <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
+                <img src="/images/kls_git_logo.png" alt="KLS GIT" style="width:20px; height:20px; border-radius:50%; background:#fff; padding:1px; flex-shrink:0;" />
+                <span style="color: #fff; font-weight: 600;">KLS Gogte Institute of Technology, Belgaum</span>
+              </div>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: 700; letter-spacing: 0.5px;">Meeting Schedule</span>
+              <span id="about-schedule" style="color: var(--accent-cyan); font-weight: 600; margin-top: 2px; display: block;">Wednesdays, 5:00 PM – 6:30 PM</span>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: 700; letter-spacing: 0.5px;">Primary Venue</span>
+              <span id="about-venue" style="color: #fff; margin-top: 2px; display: block;">Silver Jubilee Auditorium / Central Hall</span>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: 700; letter-spacing: 0.5px;">Eligibility</span>
+              <span id="about-eligibility" style="color: var(--text-secondary); margin-top: 2px; display: block;">Open to all enrolled students at KLS GIT Belgaum</span>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: 700; letter-spacing: 0.5px;">Certification</span>
+              <span style="color: var(--accent-green); font-weight: 600; margin-top: 2px; display: block;">✓ Official Recognized College Certificates</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Faculty Coordinator Card -->
+        <div class="card" style="padding: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;">
+          <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Faculty Advisor</span>
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 10px;">
+            <div style="font-size: 1.6rem; background: rgba(99,102,241,0.12); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🎓</div>
+            <div>
+              <h4 id="about-faculty-name" style="margin: 0; color: #fff; font-size: 0.95rem; font-weight: 700;">Dr. Rajesh Kulkarni</h4>
+              <p id="about-faculty-email" style="margin: 2px 0 0 0; color: var(--text-muted); font-size: 0.8rem;">faculty@college.edu</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 1: Upcoming Events -->
+  <div id="tab-events" class="tab-content">
+    <div class="events-grid" id="club-upcoming-grid">
+      <div class="empty-state"><p>Loading upcoming events...</p></div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Past Events -->
+  <div id="tab-past" class="tab-content">
+    <div class="events-grid" id="club-past-grid">
+      <div class="empty-state"><p>Loading past event archives...</p></div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Leadership -->
+  <div id="tab-leadership" class="tab-content">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;" id="leadership-grid">
+      <!-- Injected via JS -->
+    </div>
+  </div>
+
+  <!-- Tab 4: Announcements -->
+  <div id="tab-announcements" class="tab-content">
+    <div id="announcements-list" style="display:flex; flex-direction:column; gap: 14px;">
+      <!-- Injected via JS -->
+    </div>
+  </div>
+
+  <!-- Tab 5: Achievements -->
+  <div id="tab-achievements" class="tab-content">
+    <div id="achievements-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+      <!-- Injected via JS -->
+    </div>
+  </div>
+
+</main>
+
+<!-- Details Modal -->
+<div class="modal-overlay" id="eventDetailsModal">
+  <div class="modal-card" style="max-width: 650px;">
+    <div class="modal-header">
+      <h3 id="detailsModalTitle">Event Details</h3>
+      <button class="modal-close" onclick="closeModal('eventDetailsModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="detailsModalBody"></div>
+    <div class="modal-footer" id="detailsModalActions"></div>
+  </div>
+</div>
+
+<!-- Unified Login Modal -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-card" style="max-width: 440px;">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <span style="font-size:1.6rem;">🎓</span>
+        <h3 style="margin:0;">College Club Portal</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="login-form" novalidate onsubmit="handleLogin(event); return false;">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <input type="email" id="email" name="email" placeholder="you@college.edu" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="role">Select Your Role</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🎭</span>
+            <select id="role" name="role" required>
+              <option value="" disabled selected>Select Role</option>
+              <option value="DEVELOPER">🛠 Developer</option>
+              <option value="COORDINATOR">📋 Coordinator</option>
+              <option value="FACULTY_COORDINATOR">🎓 Faculty Coordinator</option>
+              <option value="USER">👤 Student / User</option>
+            </select>
+          </div>
+        </div>
+        <div id="error-msg" class="error-msg"></div>
+        <button type="submit" id="login-btn" class="btn btn-primary" style="margin-top: 20px; width: 100%;">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth.js?v=20260905_v5"></script>
+<script src="/js/club.js?v=20260905_v5"></script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLS GIT Belgaum — Faculty Panel</title>
+  <link rel="icon" type="image/png" href="/images/kls_git_logo.png" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="dashboard">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="/images/kls_git_logo.png" alt="KLS GIT" style="width:38px; height:38px; border-radius:50%; object-fit:contain; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;" />
+        <div class="logo-text">
+          <h2>KLS GIT</h2>
+          <span>Faculty Panel</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" style="background: var(--gradient-fac);" id="user-avatar">F</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Faculty Coordinator</div>
+        <div class="user-role">FACULTY COORDINATOR</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Approvals</div>
+      <a class="nav-item active" onclick="showSection('pending')">
+        <span class="nav-icon">⏳</span> Pending Review
+        <span id="pending-badge" style="margin-left:auto; background:var(--accent-amber); color:#000; border-radius:100px; padding:1px 7px; font-size:0.7rem; font-weight:700;"></span>
+      </a>
+      <a class="nav-item" onclick="showSection('approved')">
+        <span class="nav-icon">✅</span> Approved Events
+      </a>
+
+      <div class="nav-section-title">Competitions & Judging</div>
+      <a class="nav-item" onclick="showSection('judging')">
+        <span class="nav-icon">⚖️</span> Judging & Submissions
+      </a>
+
+      <div class="nav-section-title">Events</div>
+      <a class="nav-item" onclick="showSection('events')">
+        <span class="nav-icon">📅</span> All Events
+      </a>
+
+      <div class="nav-section-title">Registration & Attendance</div>
+      <a class="nav-item" onclick="showSection('registrations')">
+        <span class="nav-icon">📊</span> Registration Overview
+      </a>
+
+      <div class="nav-section-title">Faculty</div>
+      <a class="nav-item" onclick="showSection('faculty')">
+        <span class="nav-icon">👨‍🏫</span> Faculty Members
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn btn-secondary" style="width:100%;" onclick="logout()">
+        🚪 Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="page-title">⏳ Pending Approvals</h1>
+        <p id="page-subtitle">Events awaiting your review</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" id="add-btn" onclick="openAddModal()" style="display:none;">+ Add Event</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Pending Approvals Section -->
+      <div id="section-pending">
+        <div id="pending-container">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <p>Loading pending events...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved Events Section -->
+      <div id="section-approved" style="display:none;">
+        <div class="card">
+          <div class="card-header"><h2>Approved Events (Visible to Students)</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title & Type</th>
+                  <th>Club</th>
+                  <th>Enabled Tools</th>
+                  <th>Date & Time</th>
+                  <th>Venue</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="approved-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Judging & Submissions Section -->
+      <div id="section-judging" style="display:none;">
+        <div class="form-group" style="max-width:380px; margin-bottom:20px;">
+          <label>Select Competition / Event to Evaluate</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🎯</span>
+            <select id="judge-event-select" onchange="loadSubmissionsForJudging()"></select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Participant Submissions</h2>
+            <span class="badge badge-purple">100-Point Evaluation Rubric</span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Participant / Team</th>
+                  <th>Type</th>
+                  <th>Title & Links</th>
+                  <th>Submitted At</th>
+                  <th>Current Score</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="judging-tbody">
+                <tr><td colspan="7" style="text-align:center;">Select an event above.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Events Section -->
+      <div id="section-events" style="display:none;">
+        <div class="card">
+          <div class="card-header"><h2>All Events Across Campus</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title & Type</th>
+                  <th>Club</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="events-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Management Section -->
+      <div id="section-faculty" style="display:none;">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><h2>Add Faculty Member</h2></div>
+            <form id="faculty-form" novalidate>
+              <div class="form-group">
+                <label>Full Name *</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">👤</span>
+                  <input type="text" id="fac-name" placeholder="Dr. Jane Smith" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">✉️</span>
+                  <input type="email" id="fac-email" placeholder="faculty@college.edu" required />
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="form-group">
+                  <label>Department</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">🏛</span>
+                    <input type="text" id="fac-department" placeholder="Computer Science" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Designation</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">🏷</span>
+                    <input type="text" id="fac-designation" placeholder="Associate Professor" />
+                  </div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">
+                + Add Faculty Member
+              </button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h2>Faculty Directory</h2></div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>#</th><th>Name</th><th>Department</th><th>Designation</th></tr>
+                </thead>
+                <tbody id="faculty-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registration & Attendance Overview Section -->
+      <div id="section-registrations" style="display:none;">
+        <div class="stats-grid" style="margin-bottom:20px;">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(59,130,246,0.15); color:var(--accent-blue);">👥</div>
+            <div class="stat-info">
+              <div class="stat-value" id="fac-reg-total">—</div>
+              <div class="stat-label">Total Registrations</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,0.15); color:var(--accent-green);">✓</div>
+            <div class="stat-info">
+              <div class="stat-value" id="fac-reg-confirmed">—</div>
+              <div class="stat-label">Confirmed Seats</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,0.15); color:var(--accent-amber);">⏳</div>
+            <div class="stat-info">
+              <div class="stat-value" id="fac-reg-waitlisted">—</div>
+              <div class="stat-label">Waitlisted Students</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(168,85,247,0.15); color:var(--accent-purple);">🎯</div>
+            <div class="stat-info">
+              <div class="stat-value" id="fac-reg-attended">—</div>
+              <div class="stat-label">Event-Day Attendees</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap; gap:12px;">
+            <div>
+              <h2>College-Wide Event Registration Overview</h2>
+              <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Live capacity monitoring and attendance tracking across all active club events</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-secondary btn-sm" onclick="loadRegistrationOverview()">🔄 Refresh Data</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Event & Club</th>
+                  <th>Type</th>
+                  <th>Event Date</th>
+                  <th>Capacity & Registrations</th>
+                  <th>Confirmed</th>
+                  <th>Waitlisted</th>
+                  <th>Attended</th>
+                  <th>Attendance %</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-reg-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Reject Reason Modal -->
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal" style="max-width: 480px;">
+    <div class="modal-header">
+      <h2>Reject Event</h2>
+      <button class="modal-close" onclick="closeModal('reject-modal')">✕</button>
+    </div>
+    <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:14px;">
+      Rejecting: <strong id="reject-event-title" style="color:var(--text-primary);">—</strong>
+    </p>
+    <div class="form-group">
+      <label>Reason for Rejection *</label>
+      <textarea id="reject-reason" rows="4" placeholder="Explain clearly what needs to be changed (e.g. date conflict, missing budget, venue unavailable)..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closeModal('reject-modal')">Cancel</button>
+      <button type="button" class="btn btn-danger" onclick="confirmReject()">Confirm Rejection</button>
+    </div>
+  </div>
+</div>
+
+<!-- Judge Scorecard Modal -->
+<div class="modal-overlay" id="judge-score-modal">
+  <div class="modal" style="max-width: 580px;">
+    <div class="modal-header">
+      <div>
+        <h2>⚖️ Judge Evaluation Scorecard</h2>
+        <p style="font-size:0.8rem; color:var(--text-muted);" id="judge-target-label">Evaluating Submission</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('judge-score-modal')">✕</button>
+    </div>
+
+    <form id="judge-form" onsubmit="event.preventDefault(); submitJudgeScore();">
+      <input type="hidden" id="judge-submission-id" />
+
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-bottom:16px;">
+        <div class="two-col">
+          <div class="form-group">
+            <label>1. Innovation & Novelty (Max 20)</label>
+            <input type="number" id="jd-innovation" min="0" max="20" value="16" required oninput="calcTotalScore()" />
+          </div>
+          <div class="form-group">
+            <label>2. Technical Depth (Max 20)</label>
+            <input type="number" id="jd-technical" min="0" max="20" value="17" required oninput="calcTotalScore()" />
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-group">
+            <label>3. UI / UX Design (Max 15)</label>
+            <input type="number" id="jd-ui" min="0" max="15" value="13" required oninput="calcTotalScore()" />
+          </div>
+          <div class="form-group">
+            <label>4. Impact & Utility (Max 20)</label>
+            <input type="number" id="jd-impact" min="0" max="20" value="16" required oninput="calcTotalScore()" />
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-group">
+            <label>5. Presentation Quality (Max 10)</label>
+            <input type="number" id="jd-presentation" min="0" max="10" value="9" required oninput="calcTotalScore()" />
+          </div>
+          <div class="form-group">
+            <label>6. Demo / Prototype (Max 15)</label>
+            <input type="number" id="jd-demo" min="0" max="15" value="14" required oninput="calcTotalScore()" />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:12px; margin-top:8px;">
+          <span style="font-weight:700; color:var(--text-primary);">Total Aggregate Score:</span>
+          <span id="jd-total-display" style="font-size:1.3rem; font-weight:800; color:var(--accent-green);">85 / 100</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Judges Feedback & Comments</label>
+        <textarea id="jd-remarks" placeholder="Strengths, areas for improvement, constructive feedback..." rows="3"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('judge-score-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Evaluation & Publish Score</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/faculty.js"></script>
+</body>
+</html>
