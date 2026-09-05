@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: event-manager
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /index.html
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: 86400000
