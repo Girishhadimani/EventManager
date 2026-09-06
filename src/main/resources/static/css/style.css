@@ -2026,16 +2026,17 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
 }
 
 .section-aerial-bg {
-  background: url('/images/kls_git_aerial.jpg') center top / cover no-repeat !important;
+  background: url('/images/kls_git_aerial.jpg') center center / 100% 100% no-repeat !important;
 }
 
 .section-entrance-bg {
-  background: url('/images/kls_git_entrance.jpg') center center / cover no-repeat !important;
+  background: url('/images/kls_git_entrance.jpg') center center / 100% 100% no-repeat !important;
 }
 
 @media (max-width: 768px) {
   .section-aerial-bg,
   .section-entrance-bg {
+    background-size: cover !important;
     padding: 24px 16px 28px;
     border-radius: 20px;
     margin-bottom: 40px;
