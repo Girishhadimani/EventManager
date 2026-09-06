@@ -1,6 +1,20 @@
 // user.js — Student Portal & Integrated Tool Engines Workspace
 'use strict';
 
+// Local safety fallback for escapeHtml
+if (typeof window.escapeHtml !== 'function') {
+  window.escapeHtml = function(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+}
+const escapeHtml = window.escapeHtml;
+
 if (!requireRole('USER')) { /* redirected */ }
 else { init(); }
 
@@ -8,6 +22,8 @@ let allEvents = [];
 let myRegistrations = [];
 let allClubs = [];
 let activeWorkspaceEvent = null;
+let activeRegFilter = 'ALL';
+let activeRegSearch = '';
 
 // Coding Engine State
 const codeTemplates = {
@@ -122,9 +138,27 @@ async function init() {
 }
 
 // ============================================================
-// Section Switching
+// Section Switching & Mobile Nav
 // ============================================================
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.toggle('open');
+}
+window.toggleSidebar = toggleSidebar;
+
 function showSection(name) {
+  // Always close any active modals and restore scrolling
+  if (typeof closeAllModals === 'function') {
+    closeAllModals();
+  } else {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    document.body.style.overflow = '';
+  }
+
+  // Close mobile sidebar drawer if open
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.remove('open');
+
   document.querySelectorAll('[id^="section-"]').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
@@ -138,7 +172,7 @@ function showSection(name) {
   const titleMap = {
     'events': ['Browse Events', 'Discover, register, and participate using integrated event tools'],
     'clubs': ['Student Clubs', 'Explore active campus clubs and leadership'],
-    'my-registrations': ['My Registrations', 'Your upcoming event schedule and active competition workspaces'],
+    'my-registrations': ['My Registrations', 'Your upcoming event schedule, entry ticket passes, and workspaces'],
     'certificates': ['Certificates & Verification', 'View your earned certificates and verify academic credentials'],
     'vtu-points': ['VTU AICTE Activity Points', 'Official 100-Point Activity Tracker & Digital Evaluation Transcript']
   };
@@ -148,7 +182,9 @@ function showSection(name) {
     document.getElementById('page-subtitle').textContent = titleMap[name][1];
   }
 
-  if (name === 'certificates') {
+  if (name === 'my-registrations') {
+    loadMyRegistrations();
+  } else if (name === 'certificates') {
     loadMyCertificatesTab();
   } else if (name === 'vtu-points') {
     loadVtuPointsTab();
@@ -168,11 +204,48 @@ async function loadEvents() {
 }
 
 async function loadMyRegistrations() {
+  const tbody = document.getElementById('my-reg-tbody');
+  if (tbody && (!myRegistrations || myRegistrations.length === 0)) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:36px 16px;">
+          <div style="font-size:2rem; margin-bottom:8px; animation: spin 1s linear infinite; display:inline-block;">⏳</div>
+          <div style="font-weight:600; color:var(--text-primary);">Loading your event registrations...</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Connecting to KLS GIT Event Registry</div>
+        </td>
+      </tr>
+    `;
+  }
   try {
     myRegistrations = await apiFetch('/api/registrations/my');
+    updateRegNavBadge();
     renderMyRegistrations();
   } catch (err) {
     console.error('Failed to load registrations:', err);
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:32px 16px;">
+            <div style="font-size:2rem; margin-bottom:8px;">⚠️</div>
+            <div style="font-weight:700; color:var(--accent-red); margin-bottom:4px;">Unable to load registrations</div>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">${escapeHtml(err.message || 'Server connection error')}</div>
+            <button class="btn btn-secondary btn-sm" onclick="loadMyRegistrations()">🔄 Retry Loading</button>
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+function updateRegNavBadge() {
+  const badge = document.getElementById('nav-reg-count');
+  if (!badge) return;
+  const count = Array.isArray(myRegistrations) ? myRegistrations.filter(r => r.status !== 'CANCELLED').length : 0;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
   }
 }
 
@@ -441,21 +514,94 @@ function getToolDescription(tool) {
 
 
 // ============================================================
-// Render My Registrations Table
+// Render My Registrations Table with Filtering & Search
 // ============================================================
+function setRegFilter(filter) {
+  activeRegFilter = filter;
+  document.querySelectorAll('.reg-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+  });
+  renderMyRegistrations();
+}
+window.setRegFilter = setRegFilter;
+
+function filterRegistrationsInput(query) {
+  activeRegSearch = (query || '').toLowerCase().trim();
+  renderMyRegistrations();
+}
+window.filterRegistrationsInput = filterRegistrationsInput;
+
 function renderMyRegistrations() {
   const tbody = document.getElementById('my-reg-tbody');
+  if (!tbody) return;
+
   if (!myRegistrations || !myRegistrations.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>You have not registered for any events yet.</p></div></td></tr>';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:48px 16px;">
+          <div class="empty-state">
+            <div style="font-size:2.4rem; margin-bottom:10px;">📋</div>
+            <h3 style="margin:0 0 6px; font-size:1.15rem; color:var(--text-primary);">No Event Registrations Yet</h3>
+            <p style="margin:0 0 16px; font-size:0.85rem; color:var(--text-muted);">You have not registered for any campus competitions or workshops yet.</p>
+            <button class="btn btn-primary btn-sm" onclick="showSection('events')">🎯 Browse Events & Register</button>
+          </div>
+        </td>
+      </tr>
+    `;
+    const countLabel = document.getElementById('my-reg-count-label');
+    if (countLabel) countLabel.textContent = '0 Registrations';
     return;
   }
 
-  tbody.innerHTML = myRegistrations.map((r, i) => {
-    const title = r.eventTitle || (r.event ? r.event.title : 'Event');
-    const club = r.clubName || (r.event && r.event.club ? r.event.club.name : '—');
+  let list = myRegistrations;
+
+  // Filter by status tab
+  if (activeRegFilter && activeRegFilter !== 'ALL') {
+    list = list.filter(r => {
+      const s = String(r.status || '').toUpperCase();
+      if (activeRegFilter === 'UPCOMING') return s === 'CONFIRMED' || s === 'REGISTERED';
+      if (activeRegFilter === 'ATTENDED') return s === 'ATTENDED';
+      if (activeRegFilter === 'WAITLISTED') return s === 'WAITLISTED';
+      if (activeRegFilter === 'CANCELLED') return s === 'CANCELLED';
+      return true;
+    });
+  }
+
+  // Filter by search query
+  if (activeRegSearch) {
+    list = list.filter(r => {
+      const title = (r.eventTitle || (r.event ? r.event.title : '')).toLowerCase();
+      const club = (r.clubName || (r.event && r.event.club ? r.event.club.name : '')).toLowerCase();
+      const num = (r.registrationNumber || ('REG-' + r.id)).toLowerCase();
+      return title.includes(activeRegSearch) || club.includes(activeRegSearch) || num.includes(activeRegSearch);
+    });
+  }
+
+  const countLabel = document.getElementById('my-reg-count-label');
+  if (countLabel) {
+    countLabel.textContent = `${list.length} of ${myRegistrations.length} Registrations`;
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:36px 16px;">
+          <div style="color:var(--text-muted); font-size:0.9rem;">No registrations match your current filter.</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="setRegFilter('ALL'); const inp = document.getElementById('my-reg-search-input'); if (inp) inp.value=''; filterRegistrationsInput('');">Clear Filters</button>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = list.map((r, i) => {
+    const title = r.eventTitle || (r.event ? r.event.title : 'Campus Event');
+    const club = r.clubName || (r.event && r.event.club ? r.event.club.name : 'College Club');
     const date = r.eventDate || (r.event ? r.event.date : '—');
-    const venue = r.eventVenue || (r.event ? r.event.venue : 'Campus');
+    const time = r.eventTime ? String(r.eventTime).substring(0, 5) : '';
+    const venue = r.eventVenue || (r.event ? r.event.venue : 'Campus Center');
     const eventId = r.eventId || (r.event ? r.event.id : null);
+    const regNum = r.registrationNumber || ('REG-' + r.id);
 
     const statusBadgeHtml = formatRegStatusBadge(r.status);
 
@@ -463,25 +609,40 @@ function renderMyRegistrations() {
       <tr>
         <td>${i + 1}</td>
         <td>
-          <span style="font-family:monospace; font-weight:700; color:var(--accent-cyan);">${r.registrationNumber || 'REG-' + r.id}</span>
-          ${r.checkedInAt ? '<br><small style="color:var(--accent-green);">✓ Checked-In</small>' : ''}
+          <span style="font-family:monospace; font-weight:700; color:var(--accent-cyan); font-size:0.88rem;">${escapeHtml(regNum)}</span>
+          ${r.checkedInAt ? '<br><small style="color:var(--accent-green); font-weight:600;">✓ Checked-In</small>' : ''}
         </td>
         <td>
-          <div style="font-weight:600; color:#fff;">${title}</div>
-          <small style="color:var(--text-muted);">${r.usnOrStudentId ? 'USN: ' + r.usnOrStudentId : ''}</small>
+          <div style="font-weight:600; color:#fff; font-size:0.95rem;">${escapeHtml(title)}</div>
+          ${r.teamName ? `<div style="font-size:0.75rem; color:#c7d2fe; margin-top:2px;">👥 Team: <strong>${escapeHtml(r.teamName)}</strong></div>` : ''}
+          <small style="color:var(--text-muted);">${r.usnOrStudentId ? 'USN: ' + escapeHtml(r.usnOrStudentId) : ''}</small>
         </td>
-        <td>${club}</td>
+        <td><span style="font-size:0.85rem; color:var(--text-secondary);">${escapeHtml(club)}</span></td>
         <td>
-          <div>${date}</div>
-          <small style="color:var(--text-muted);">${venue}</small>
+          <div style="font-size:0.85rem; font-weight:500;">📅 ${escapeHtml(date)} ${time ? '⏰ ' + time : ''}</div>
+          <small style="color:var(--text-muted);">📍 ${escapeHtml(venue)}</small>
         </td>
         <td>${statusBadgeHtml}</td>
         <td>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="btn btn-sm btn-secondary" onclick="viewTicketPassById(${r.id})">🎫 Pass & QR</button>
-            ${(r.status === 'ATTENDED' && eventId) ? `<button class="btn btn-sm btn-success" onclick="viewCertificateGated(${eventId})">🎓 Certificate</button>` : ''}
-            ${eventId ? `<button class="btn btn-sm btn-primary" onclick="openWorkspace(${eventId})">🚀 Tools</button>` : ''}
-            ${r.status !== 'CANCELLED' && eventId ? `<button class="btn btn-sm btn-danger" onclick="cancelReg(${eventId})" title="Cancel">✕</button>` : ''}
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <button class="btn btn-sm btn-secondary" onclick="viewTicketPassById(${r.id})" title="View Scannable QR Ticket Pass">
+              🎫 Pass & QR
+            </button>
+            ${(r.status === 'ATTENDED' && eventId) ? `
+              <button class="btn btn-sm btn-success" onclick="viewCertificateGated(${eventId})" title="View / Download Official Certificate">
+                🎓 Certificate
+              </button>
+            ` : ''}
+            ${eventId ? `
+              <button class="btn btn-sm btn-primary" onclick="openWorkspace(${eventId})" title="Open Competition & Event Tools">
+                🚀 Tools
+              </button>
+            ` : ''}
+            ${r.status !== 'CANCELLED' && eventId ? `
+              <button class="btn btn-sm btn-danger" onclick="cancelReg(${eventId})" title="Cancel Registration">
+                ✕
+              </button>
+            ` : ''}
           </div>
         </td>
       </tr>
@@ -869,28 +1030,60 @@ async function submitDynamicRegistration(e) {
 // Holographic Digital Ticket Pass & QR Code Rendering
 // ============================================================
 function viewTicketPassById(registrationId) {
-  const reg = myRegistrations.find(r => r.id === registrationId);
-  if (!reg) return;
+  let reg = myRegistrations.find(r => r.id == registrationId);
+  if (!reg) {
+    // If not currently in memory array, fetch fresh from server
+    apiFetch(`/api/registrations/${registrationId}`).then(data => {
+      if (data) displayTicketPass(data);
+      else showToast('Registration record not found.', 'warning');
+    }).catch(err => {
+      showToast('Could not load ticket pass: ' + err.message, 'error');
+    });
+    return;
+  }
   displayTicketPass(reg);
 }
 
 function displayTicketPass(reg) {
-  document.getElementById('ticket-event-title').textContent   = reg.eventTitle || (reg.event ? reg.event.title : 'Event Pass');
-  document.getElementById('ticket-club-name').textContent     = (reg.clubName || (reg.event && reg.event.club ? reg.event.club.name : 'COLLEGE CLUB')).toUpperCase();
-  document.getElementById('ticket-event-type-badge').innerHTML = formatTypeBadge(reg.eventType || (reg.event ? reg.event.eventType : 'OTHER'));
+  if (!reg) return;
 
-  document.getElementById('ticket-date').textContent  = `📅 ${reg.eventDate || (reg.event ? reg.event.date : 'TBA')}`;
-  document.getElementById('ticket-time').textContent  = `⏰ ${reg.eventTime || '10:00 AM'}`;
-  document.getElementById('ticket-venue').textContent = `📍 ${reg.eventVenue || 'Campus Center'}`;
+  const titleEl = document.getElementById('ticket-event-title');
+  if (titleEl) titleEl.textContent = reg.eventTitle || (reg.event ? reg.event.title : 'Event Pass');
 
-  document.getElementById('ticket-student-name').textContent = reg.studentName || getUserName() || 'Student';
-  document.getElementById('ticket-student-usn').textContent  = reg.usnOrStudentId || 'USN REGISTERED';
-  document.getElementById('ticket-dept').textContent         = `${reg.department || 'Engineering'} (${reg.year || '2026'})`;
+  const clubEl = document.getElementById('ticket-club-name');
+  if (clubEl) clubEl.textContent = (reg.clubName || (reg.event && reg.event.club ? reg.event.club.name : 'COLLEGE CLUB')).toUpperCase();
 
-  document.getElementById('ticket-reg-number').textContent = reg.registrationNumber || `REG-${reg.id}`;
+  const typeEl = document.getElementById('ticket-event-type-badge');
+  if (typeEl) typeEl.innerHTML = formatTypeBadge(reg.eventType || (reg.event ? reg.event.eventType : 'OTHER'));
+
+  const dateEl = document.getElementById('ticket-date');
+  if (dateEl) dateEl.textContent = `📅 ${reg.eventDate || (reg.event ? reg.event.date : 'TBA')}`;
+
+  const timeEl = document.getElementById('ticket-time');
+  if (timeEl) {
+    const timeStr = reg.eventTime ? String(reg.eventTime).substring(0, 5) : '10:00 AM';
+    timeEl.textContent = `⏰ ${timeStr}`;
+  }
+
+  const venueEl = document.getElementById('ticket-venue');
+  if (venueEl) venueEl.textContent = `📍 ${reg.eventVenue || (reg.event ? reg.event.venue : 'Campus Center')}`;
+
+  const nameEl = document.getElementById('ticket-student-name');
+  if (nameEl) nameEl.textContent = reg.studentName || getUserName() || 'Student';
+
+  const usnEl = document.getElementById('ticket-student-usn');
+  if (usnEl) usnEl.textContent = reg.usnOrStudentId || 'USN REGISTERED';
+
+  const deptEl = document.getElementById('ticket-dept');
+  if (deptEl) deptEl.textContent = `${reg.department || 'Engineering'} (${reg.year || '2026'})`;
+
+  const regNumEl = document.getElementById('ticket-reg-number');
+  if (regNumEl) regNumEl.textContent = reg.registrationNumber || `REG-${reg.id}`;
 
   const statusBadgeEl = document.getElementById('ticket-status-badge');
-  statusBadgeEl.innerHTML = formatRegStatusBadge(reg.status);
+  if (statusBadgeEl) {
+    statusBadgeEl.innerHTML = formatRegStatusBadge(reg.status);
+  }
 
   // Render Team Banner if group registration
   const teamBanner = document.getElementById('ticket-team-banner');
@@ -919,12 +1112,20 @@ function displayTicketPass(reg) {
   const qrString = reg.qrCodeData || reg.registrationNumber || `REG-${reg.id}`;
   const qrBox = document.getElementById('ticket-qr-box');
   if (qrBox) {
+    const escapedQr = escapeHtml(qrString);
     qrBox.innerHTML = `
       <img src="/api/registrations/${reg.id}/qr-code" 
            alt="Entry Ticket QR Pass" 
            style="width:160px; height:160px; border-radius:10px; background:#fff; padding:6px; box-shadow:0 4px 14px rgba(0,0,0,0.3); object-fit:contain;"
-           onerror="this.onerror=null; this.parentElement.innerHTML = generateQRCodeSVG('${escapeHtml(qrString)}', 140);" />
+           onerror="this.onerror=null; this.parentElement.innerHTML = generateQRCodeSVG('${escapedQr}', 140);" />
     `;
+  }
+
+  // Update Download QR link
+  const downloadLink = document.getElementById('ticket-download-btn');
+  if (downloadLink) {
+    downloadLink.href = `/api/registrations/${reg.id}/qr-code`;
+    downloadLink.setAttribute('download', `Ticket-${reg.registrationNumber || reg.id}-QR.png`);
   }
 
   openModal('ticket-pass-modal');
@@ -1381,8 +1582,19 @@ let waitingRoomInterval = null;
 let currentWaitingEventId = null;
 
 async function openWorkspace(eventId) {
-  const event = allEvents.find(e => e.id === eventId);
-  if (!event) return;
+  let event = allEvents.find(e => e.id == eventId);
+  if (!event) {
+    try {
+      event = await apiFetch(`/api/events/${eventId}`);
+    } catch (err) {
+      showToast('Could not load event workspace: ' + err.message, 'error');
+      return;
+    }
+  }
+  if (!event) {
+    showToast('Event details not found for workspace.', 'warning');
+    return;
+  }
 
   // Real-time Tool Gating Check with Server
   try {

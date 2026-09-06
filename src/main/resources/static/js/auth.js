@@ -24,10 +24,23 @@ function saveAuth(data) {
     }
 }
 
+// ---- String & HTML Utilities ----
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+window.escapeHtml = escapeHtml;
+
 // ---- Global Modal Controls (Used across all panels) ----
 
 function openModal(id) {
-    const el = document.getElementById(id);
+    const el = (typeof id === 'string') ? document.getElementById(id) : id;
     if (!el) {
         console.warn(`Modal #${id} not found.`);
         return;
@@ -36,23 +49,29 @@ function openModal(id) {
     document.body.style.overflow = 'hidden';
 }
 
-function closeModal(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('show');
+function closeModal(target) {
+    if (typeof target === 'string') {
+        const el = document.getElementById(target);
+        if (el) el.classList.remove('show');
+    } else if (target && target.classList) {
+        target.classList.remove('show');
+    }
     const openModals = document.querySelectorAll('.modal-overlay.show');
     if (openModals.length === 0) {
         document.body.style.overflow = '';
     }
 }
 
+function closeAllModals() {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    document.body.style.overflow = '';
+}
+window.closeAllModals = closeAllModals;
+
 // Close modal on Escape key & backdrop click
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        const activeModal = document.querySelector('.modal-overlay.show');
-        if (activeModal && activeModal.id) {
-            closeModal(activeModal.id);
-        }
+        closeAllModals();
         if (typeof closeMobileNav === 'function') {
             closeMobileNav();
         }
@@ -61,7 +80,7 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('click', (e) => {
     if (e.target.classList && e.target.classList.contains('modal-overlay') && e.target.classList.contains('show')) {
-        closeModal(e.target.id);
+        closeModal(e.target);
     }
 });
 
