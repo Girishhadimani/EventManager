@@ -1177,3 +1177,131 @@ async function loadEventAnalytics() {
   }
 }
 
+// ============================================================
+// Dynamic Camera QR Scanner for Event Entrance Check-in
+// ============================================================
+let html5QrScanner = null;
+let isScannerScanning = false;
+let lastScannedText = '';
+let lastScannedTime = 0;
+
+function playCheckInBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.25);
+  } catch (ignored) {}
+}
+
+async function openCameraScannerModal() {
+  const eventId = document.getElementById('reg-event-select')?.value;
+  if (!eventId) {
+    showToast('Please select an event before scanning tickets.', 'warning');
+    return;
+  }
+
+  const modal = document.getElementById('camera-qr-modal');
+  if (modal) modal.classList.add('open');
+
+  const feedback = document.getElementById('qr-scan-feedback');
+  if (feedback) {
+    feedback.style.color = 'var(--accent-cyan)';
+    feedback.textContent = 'Initializing camera feed...';
+  }
+
+  try {
+    if (!html5QrScanner) {
+      html5QrScanner = new Html5Qrcode("qr-camera-reader");
+    }
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    await html5QrScanner.start(
+      { facingMode: "environment" },
+      config,
+      onScanSuccess,
+      onScanFailure
+    );
+    isScannerScanning = true;
+    if (feedback) feedback.textContent = '📸 Camera active: Point at student QR ticket pass';
+  } catch (err) {
+    console.error('Camera QR scanner error:', err);
+    if (feedback) {
+      feedback.textContent = 'Camera initialization failed: ' + (err.message || 'Permission denied or no webcam');
+      feedback.style.color = 'var(--accent-red)';
+    }
+  }
+}
+
+async function onScanSuccess(decodedText, decodedResult) {
+  const now = Date.now();
+  if (decodedText === lastScannedText && (now - lastScannedTime) < 3000) {
+    return;
+  }
+  lastScannedText = decodedText;
+  lastScannedTime = now;
+
+  const eventId = document.getElementById('reg-event-select')?.value;
+  if (!eventId) return;
+
+  const feedback = document.getElementById('qr-scan-feedback');
+  if (feedback) {
+    feedback.style.color = 'var(--accent-cyan)';
+    feedback.textContent = `Scanned ticket. Checking in...`;
+  }
+
+  try {
+    const res = await apiFetch(`/api/events/${eventId}/check-in`, {
+      method: 'POST',
+      body: JSON.stringify({ ticketOrRegNumber: decodedText })
+    });
+
+    playCheckInBeep();
+    showToast(`✓ Checked-In: ${res.studentName} (${res.registrationNumber})`, 'success');
+
+    if (feedback) {
+      feedback.style.color = 'var(--accent-green)';
+      feedback.innerHTML = `✓ <strong>${res.studentName}</strong> checked in! (${res.registrationNumber})`;
+    }
+
+    const alertBox = document.getElementById('checkin-recent-alert');
+    const alertMsg = document.getElementById('checkin-recent-msg');
+    if (alertBox && alertMsg) {
+      alertMsg.innerHTML = `<strong>✓ Camera QR Check-in Verified:</strong> ${res.studentName} (USN: ${res.usnOrStudentId || '—'}) • Ticket: <code>${res.registrationNumber}</code> • Status: <strong>ATTENDED</strong>`;
+      alertBox.style.display = 'block';
+    }
+
+    await loadRegistrations();
+  } catch (err) {
+    if (feedback) {
+      feedback.style.color = 'var(--accent-red)';
+      feedback.textContent = `Check-in failed: ${err.message}`;
+    }
+    showToast(`Check-in failed: ${err.message}`, 'error');
+  }
+}
+
+function onScanFailure(error) {
+  // Frame decode skip
+}
+
+async function closeCameraScannerModal() {
+  if (html5QrScanner && isScannerScanning) {
+    try {
+      await html5QrScanner.stop();
+    } catch (e) {
+      console.warn('Error stopping QR scanner:', e);
+    }
+    isScannerScanning = false;
+  }
+  const modal = document.getElementById('camera-qr-modal');
+  if (modal) modal.classList.remove('open');
+}
+

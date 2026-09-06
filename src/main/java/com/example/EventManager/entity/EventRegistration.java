@@ -95,6 +95,10 @@ public class EventRegistration {
     @Column(name = "activity_points_earned")
     private Integer activityPointsEarned;
 
+    @Column(name = "reminder_sent")
+    @Builder.Default
+    private Boolean reminderSent = false;
+
     @PrePersist
     protected void onCreate() {
         this.registeredAt = LocalDateTime.now();

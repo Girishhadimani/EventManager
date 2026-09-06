@@ -39,4 +39,7 @@ public interface RegistrationRepository extends JpaRepository<EventRegistration,
 
     // Auto-promote earliest waitlisted participant
     Optional<EventRegistration> findFirstByEventAndStatusOrderByRegisteredAtAsc(Event event, RegistrationStatus status);
+
+    // Event reminders query
+    List<EventRegistration> findByEventAndStatusInAndReminderSentFalse(Event event, List<RegistrationStatus> statuses);
 }

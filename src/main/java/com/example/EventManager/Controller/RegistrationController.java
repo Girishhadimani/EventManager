@@ -72,6 +72,20 @@ public class RegistrationController {
     }
 
     /**
+     * Download or render dynamic PNG QR ticket code.
+     */
+    @GetMapping(value = "/registrations/{id}/qr-code", produces = org.springframework.http.MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getRegistrationQrCode(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser) {
+        byte[] qrImage = registrationService.getRegistrationQrCodeImage(id, currentUser);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"Ticket-QR-" + id + ".png\"")
+                .body(qrImage);
+    }
+
+    /**
      * Coordinator/Faculty update registration status (e.g. promote waitlist or cancel).
      */
     @PutMapping("/registrations/{id}/status")

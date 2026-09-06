@@ -210,6 +210,12 @@
               <span>Faculty Coordinator</span>
             </div>
           </div>
+
+          <div style="text-align:center; margin-top:20px;">
+            <a href="/api/certificates/verify/${encodeURIComponent(data.certificateHash)}/pdf" target="_blank" class="btn btn-primary" style="padding:12px 28px; font-weight:700; font-size:1rem; box-shadow:0 4px 14px rgba(79,70,229,0.4);">
+              📥 Download Verified Official PDF Copy
+            </a>
+          </div>
         `;
       } else {
         container.innerHTML = `

@@ -915,9 +915,17 @@ function displayTicketPass(reg) {
     }
   }
 
-  // Render SVG QR Code
+  // Render dynamic scannable ZXing QR Code
   const qrString = reg.qrCodeData || reg.registrationNumber || `REG-${reg.id}`;
-  document.getElementById('ticket-qr-box').innerHTML = generateQRCodeSVG(qrString, 140);
+  const qrBox = document.getElementById('ticket-qr-box');
+  if (qrBox) {
+    qrBox.innerHTML = `
+      <img src="/api/registrations/${reg.id}/qr-code" 
+           alt="Entry Ticket QR Pass" 
+           style="width:160px; height:160px; border-radius:10px; background:#fff; padding:6px; box-shadow:0 4px 14px rgba(0,0,0,0.3); object-fit:contain;"
+           onerror="this.onerror=null; this.parentElement.innerHTML = generateQRCodeSVG('${escapeHtml(qrString)}', 140);" />
+    `;
+  }
 
   openModal('ticket-pass-modal');
 }
@@ -1959,9 +1967,12 @@ async function loadMyCertificatesTab() {
               </div>
             </div>
 
-            <div style="display:flex; gap:8px; margin-top:12px;">
+            <div style="display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;">
               <button class="btn btn-primary btn-sm" style="flex:1;" onclick="viewMyCertificate('${escapeHtml(cert.certificateId)}')">
-                👁️ View Certificate
+                👁️ View
+              </button>
+              <button class="btn btn-success btn-sm" style="flex:1; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff;" onclick="downloadCertificatePdfDirectly('${escapeHtml(cert.certificateId)}')">
+                📥 PDF
               </button>
               <button class="btn btn-secondary btn-sm" onclick="printMyCertificateDirectly('${escapeHtml(cert.certificateId)}')">
                 🖨️ Print
@@ -2028,10 +2039,13 @@ async function verifyCertificateInDashboard() {
             <div><span style="color:var(--text-muted);">Status:</span> <span style="color:#10b981; font-weight:700;">CRYPTOGRAPHICALLY VALID</span></div>
           </div>
 
-          <div style="display:flex; justify-content:flex-end; gap:10px;">
-            <button class="btn btn-primary btn-sm" id="btn-view-verified-cert">
-              📜 View Full Certificate & Print
+          <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" id="btn-view-verified-cert">
+              📜 View Certificate
             </button>
+            <a href="/api/certificates/verify/${encodeURIComponent(data.certificateHash)}/pdf" target="_blank" class="btn btn-primary btn-sm">
+              📥 Download Official PDF
+            </a>
           </div>
         </div>
       `;
@@ -2055,6 +2069,8 @@ async function verifyCertificateInDashboard() {
     `;
   }
 }
+
+let currentViewingCertHash = null;
 
 function viewMyCertificate(certId) {
   const cert = myCertificatesList.find(c => c.certificateId === certId);
@@ -2082,7 +2098,20 @@ function printMyCertificateDirectly(certId) {
   setTimeout(() => window.print(), 350);
 }
 
+function downloadCertificatePdfDirectly(certId) {
+  window.open(`/api/certificates/verify/${encodeURIComponent(certId)}/pdf`, '_blank');
+}
+
+function downloadCurrentCertPdf() {
+  if (!currentViewingCertHash) {
+    showToast('No active certificate selected.', 'warning');
+    return;
+  }
+  window.open(`/api/certificates/verify/${encodeURIComponent(currentViewingCertHash)}/pdf`, '_blank');
+}
+
 function renderCertModalHtml(data) {
+  currentViewingCertHash = data.certificateHash;
   const container = document.getElementById('certificate-viewer-body');
   if (!container) return;
 

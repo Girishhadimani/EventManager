@@ -14,11 +14,17 @@ import com.example.EventManager.enums.Role;
 import com.example.EventManager.exception.ResourceNotFoundException;
 import com.example.EventManager.repository.EventRepository;
 import com.example.EventManager.repository.RegistrationRepository;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,6 +35,7 @@ public class RegistrationService {
 
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
+    private final EmailService emailService;
 
     /**
      * Register a student for an event with dynamic custom fields.
@@ -97,6 +104,9 @@ public class RegistrationService {
         registration.setCheckedInAt(null);
 
         EventRegistration saved = registrationRepository.save(registration);
+        try {
+            emailService.sendRegistrationConfirmation(saved);
+        } catch (Exception ignored) {}
         return mapToResponse(saved);
     }
 
@@ -126,7 +136,10 @@ public class RegistrationService {
             if (waitlistedOpt.isPresent()) {
                 EventRegistration promoted = waitlistedOpt.get();
                 promoted.setStatus(RegistrationStatus.CONFIRMED);
-                registrationRepository.save(promoted);
+                EventRegistration savedPromoted = registrationRepository.save(promoted);
+                try {
+                    emailService.sendRegistrationConfirmation(savedPromoted);
+                } catch (Exception ignored) {}
             }
         }
     }
@@ -408,5 +421,35 @@ public class RegistrationService {
                 .feedbackComments(reg.getFeedbackComments())
                 .activityPointsEarned(reg.getActivityPointsEarned())
                 .build();
+    }
+
+    /**
+     * Generate dynamic PNG QR Code byte stream for student's digital ticket pass.
+     */
+    public byte[] getRegistrationQrCodeImage(Long registrationId, User currentUser) {
+        EventRegistration reg = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Registration", registrationId));
+
+        if (currentUser.getRole() == Role.USER && !reg.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("Access denied to another student's ticket QR pass.");
+        }
+
+        String qrData = reg.getQrCodeData();
+        if (qrData == null || qrData.isBlank()) {
+            qrData = reg.getRegistrationNumber();
+        }
+
+        try {
+            QRCodeWriter qrWriter = new QRCodeWriter();
+            Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
+            hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+            hints.put(EncodeHintType.MARGIN, 1);
+            BitMatrix bitMatrix = qrWriter.encode(qrData, BarcodeFormat.QR_CODE, 260, 260, hints);
+            ByteArrayOutputStream pngOut = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOut);
+            return pngOut.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to render ticket QR Code image: " + e.getMessage(), e);
+        }
     }
 }

@@ -28,5 +28,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     // Venue & Schedule conflict lookup
     List<Event> findByDateAndVenue(java.time.LocalDate date, String venue);
+
+    // Upcoming events for reminders
+    List<Event> findByDateAndStatus(java.time.LocalDate date, EventStatus status);
 }
 

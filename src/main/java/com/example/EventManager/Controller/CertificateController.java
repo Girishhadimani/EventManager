@@ -41,4 +41,30 @@ public class CertificateController {
             @AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(certificateService.getVtuActivityPointsSummary(currentUser));
     }
+
+    /**
+     * Download official PDF certificate for student's registered event.
+     */
+    @GetMapping(value = "/event/{eventId}/pdf", produces = org.springframework.http.MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getCertificatePdf(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal User currentUser) {
+        byte[] pdf = certificateService.generateCertificatePdf(eventId, currentUser);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"KLSGIT-Certificate-Event-" + eventId + ".pdf\"")
+                .body(pdf);
+    }
+
+    /**
+     * Publicly download or view verified official PDF certificate by credential hash.
+     */
+    @GetMapping(value = "/verify/{hash}/pdf", produces = org.springframework.http.MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> verifyCertificatePdf(@PathVariable String hash) {
+        byte[] pdf = certificateService.generateCertificatePdfByHash(hash);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"KLSGIT-Verified-Certificate-" + hash + ".pdf\"")
+                .body(pdf);
+    }
 }
