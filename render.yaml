@@ -21,7 +21,7 @@ services:
           name: eventmanager-db
           property: connectionString
       - key: JWT_SECRET
-        generateValue: true
+        value: 4qhq8L6lQ2Q8wQ2X7Y9V4X6b8N9Z2C4h6q8L6lQ2Q8w=
       - key: JWT_EXPIRATION
         value: 86400000
       - key: APP_MAIL_ENABLED
