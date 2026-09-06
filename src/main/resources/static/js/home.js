@@ -77,11 +77,12 @@ async function loadPublicEvents() {
 
     try {
         const res = await fetch('/api/events/approved');
+        if (!res.ok) throw new Error('Status ' + res.status);
         allEvents = await res.json();
         renderEventCards();
         updateStats();
     } catch (err) {
-        grid.innerHTML = `<div class="empty-state"><p>Could not load campus events at this time.</p></div>`;
+        grid.innerHTML = `<div class="empty-state"><p>Could not load campus events at this time.</p><button class="btn btn-secondary btn-sm" onclick="loadPublicEvents()" style="margin-top:10px;">🔄 Retry</button></div>`;
     }
 }
 
@@ -92,11 +93,12 @@ async function loadPublicClubs() {
 
     try {
         const res = await fetch('/api/clubs');
+        if (!res.ok) throw new Error('Status ' + res.status);
         allClubs = await res.json();
         renderClubCards();
         updateStats();
     } catch (err) {
-        grid.innerHTML = `<div class="empty-state"><p>Could not load campus clubs at this time.</p></div>`;
+        grid.innerHTML = `<div class="empty-state"><p>Could not load campus clubs at this time.</p><button class="btn btn-secondary btn-sm" onclick="loadPublicClubs()" style="margin-top:10px;">🔄 Retry</button></div>`;
     }
 }
 

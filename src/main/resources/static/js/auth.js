@@ -228,10 +228,26 @@ async function apiFetch(path, options = {}) {
         ...(options.headers || {}),
     };
 
-    const response = await fetch(API + path, {
-        ...options,
-        headers,
-    });
+    const timeout = options.timeout || 35000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    let response;
+    try {
+        response = await fetch(API + path, {
+            ...options,
+            headers,
+            signal: options.signal || controller.signal,
+        });
+    } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        if (fetchErr.name === 'AbortError') {
+            throw new Error('Connection timed out. The server might still be waking up. Please retry.');
+        }
+        throw fetchErr;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     if (response.status === 401) {
         clearAuth();

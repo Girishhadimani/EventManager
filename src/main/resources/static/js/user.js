@@ -109,14 +109,23 @@ let quizSecondsLeft = 30;
 let canvas, ctx;
 let canvasElements = [];
 
+let eventsLoadingTimer = null;
+let regsLoadingTimer = null;
+
 async function init() {
   document.getElementById('user-name').textContent   = getUserName() || 'Student';
   document.getElementById('user-avatar').textContent = (getUserName() || 'S')[0].toUpperCase();
 
-  await loadEvents();
-  await loadMyRegistrations();
-  await loadClubs();
-  initCanvas();
+  // Load events, registrations, and clubs concurrently so one slow endpoint doesn't block others
+  Promise.allSettled([
+    loadEvents(),
+    loadMyRegistrations(),
+    loadClubs()
+  ]).then(() => {
+    if (typeof initCanvas === 'function') {
+      initCanvas();
+    }
+  });
 
   // Check URL query param registerEventId or pendingEventRegisterId in storage
   const urlParams = new URLSearchParams(window.location.search);
@@ -195,11 +204,63 @@ function showSection(name) {
 // Load Events & Registrations
 // ============================================================
 async function loadEvents() {
+  const grid = document.getElementById('events-grid');
+  if (grid && (!allEvents || allEvents.length === 0)) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; padding: 48px 20px;">
+        <div style="font-size: 2.2rem; margin-bottom: 12px; animation: spin 1s linear infinite; display: inline-block;">⏳</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Loading campus events...</h3>
+        <p style="color: var(--text-muted); font-size: 0.875rem;" id="events-loading-hint">Connecting to KLS GIT Event Registry</p>
+      </div>
+    `;
+
+    // If still loading after 4 seconds, inform user that server is waking up
+    clearTimeout(eventsLoadingTimer);
+    eventsLoadingTimer = setTimeout(() => {
+      const hint = document.getElementById('events-loading-hint');
+      if (hint) {
+        hint.innerHTML = `
+          <div style="margin-top: 12px; padding: 14px 18px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; max-width: 480px; margin-left: auto; margin-right: auto; text-align: left;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom: 6px;">
+              <span style="font-size: 1.2rem;">⚡</span>
+              <strong style="color: var(--accent-cyan); font-size: 0.95rem;">Cloud server waking up</strong>
+            </div>
+            <div style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.45;">
+              Render cloud servers hibernate when inactive. The initial spin-up can take <strong>30–50 seconds</strong>. Your dashboard will appear automatically once ready!
+            </div>
+          </div>
+        `;
+      }
+    }, 4000);
+  }
+
   try {
     allEvents = await apiFetch('/api/events/approved');
+    clearTimeout(eventsLoadingTimer);
     renderEvents(allEvents);
   } catch (err) {
-    showToast('Failed to load events: ' + err.message, 'error');
+    clearTimeout(eventsLoadingTimer);
+    console.error('Failed to load events:', err);
+    if (grid) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; padding: 48px 24px;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">⚠️</div>
+          <h3 style="font-weight: 700; color: var(--accent-red); margin-bottom: 6px;">Unable to load events</h3>
+          <p style="font-size: 0.875rem; color: var(--text-muted); max-width: 460px; margin: 0 auto 18px;">
+            ${escapeHtml(err.message || 'The server took longer than usual to respond or is still starting.')}
+          </p>
+          <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="loadEvents()" style="font-weight: 600; padding: 9px 24px;">
+              🔄 Retry Loading Events
+            </button>
+            <button class="btn btn-secondary" onclick="showSection('my-registrations')" style="padding: 9px 20px;">
+              📋 View My Registrations
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    showToast('Failed to load events: ' + (err.message || 'Server waking up. Click Retry.'), 'error');
   }
 }
 
@@ -211,16 +272,26 @@ async function loadMyRegistrations() {
         <td colspan="7" style="text-align:center; padding:36px 16px;">
           <div style="font-size:2rem; margin-bottom:8px; animation: spin 1s linear infinite; display:inline-block;">⏳</div>
           <div style="font-weight:600; color:var(--text-primary);">Loading your event registrations...</div>
-          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Connecting to KLS GIT Event Registry</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;" id="reg-loading-hint">Connecting to KLS GIT Event Registry</div>
         </td>
       </tr>
     `;
+
+    clearTimeout(regsLoadingTimer);
+    regsLoadingTimer = setTimeout(() => {
+      const hint = document.getElementById('reg-loading-hint');
+      if (hint) {
+        hint.innerHTML = `<span style="color:var(--accent-cyan); font-weight:600;">⚡ Server is waking up (cold start can take ~30-50s)...</span>`;
+      }
+    }, 4000);
   }
   try {
     myRegistrations = await apiFetch('/api/registrations/my');
+    clearTimeout(regsLoadingTimer);
     updateRegNavBadge();
     renderMyRegistrations();
   } catch (err) {
+    clearTimeout(regsLoadingTimer);
     console.error('Failed to load registrations:', err);
     if (tbody) {
       tbody.innerHTML = `
@@ -250,11 +321,21 @@ function updateRegNavBadge() {
 }
 
 async function loadClubs() {
+  const grid = document.getElementById('clubs-grid');
   try {
     allClubs = await apiFetch('/api/clubs');
     renderClubs(allClubs);
   } catch (err) {
     console.error('Failed to load clubs:', err);
+    if (grid && (!allClubs || allClubs.length === 0)) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; padding: 40px 20px;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🏛️</div>
+          <p style="color: var(--text-muted); margin-bottom: 12px;">Unable to load clubs right now.</p>
+          <button class="btn btn-secondary btn-sm" onclick="loadClubs()">🔄 Retry</button>
+        </div>
+      `;
+    }
   }
 }
 
@@ -269,7 +350,14 @@ let activeRegisteringEvent = null;
 function renderEvents(events) {
   const grid = document.getElementById('events-grid');
   if (!events || !events.length) {
-    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">📅</div><h3>No approved events available</h3><p>Check back soon for new club competitions and activities.</p></div>';
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1; padding:48px 20px;">
+        <div class="empty-icon">📅</div>
+        <h3>No approved events available</h3>
+        <p style="color:var(--text-muted); margin-bottom:14px;">Check back soon for new club competitions and activities.</p>
+        <button class="btn btn-secondary btn-sm" onclick="loadEvents()">🔄 Refresh Events</button>
+      </div>
+    `;
     return;
   }
 

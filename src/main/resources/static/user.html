@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KLS GIT Belgaum — Student Portal</title>
   <link rel="icon" type="image/png" href="/images/kls_git_logo.png" />
-  <link rel="stylesheet" href="/css/style.css?v=20260906_v12" />
+  <link rel="stylesheet" href="/css/style.css?v=20260906_v16" />
 </head>
 <body>
 <div id="toast-container"></div>
@@ -86,9 +86,10 @@
       <!-- Browse Events -->
       <div id="section-events">
         <div id="events-grid" class="events-grid">
-          <div class="empty-state" style="grid-column:1/-1;">
-            <div class="empty-icon">⏳</div>
-            <p>Loading events...</p>
+          <div class="empty-state" style="grid-column:1/-1; padding: 48px 20px;">
+            <div style="font-size:2.2rem; margin-bottom:12px; animation: spin 1s linear infinite; display:inline-block;">⏳</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:6px;">Loading campus events...</h3>
+            <p style="color:var(--text-muted); font-size:0.875rem;" id="events-loading-hint">Connecting to KLS GIT Event Registry</p>
           </div>
         </div>
       </div>
@@ -1005,7 +1006,7 @@ Select a language, write your code, and click "Run Tests".
   </div>
 </div>
 
-<script src="/js/auth.js?v=20260905_v5"></script>
-<script src="/js/user.js?v=20260905_v5"></script>
+<script src="/js/auth.js?v=20260906_v16"></script>
+<script src="/js/user.js?v=20260906_v16"></script>
 </body>
 </html>
