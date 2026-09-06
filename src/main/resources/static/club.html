@@ -121,21 +121,101 @@
 
 <!-- Top Navigation -->
 <nav class="public-nav">
+  <div class="public-nav-rainbow-bar"></div>
   <div class="public-nav-inner">
     <a href="/index.html" class="public-brand">
-      <img src="/images/kls_git_logo.png" alt="KLS GIT Logo" style="width:42px; height:42px; border-radius:50%; object-fit:contain; background:#fff; padding:1px; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;" />
-      <div>
-        <span class="brand-name" style="font-size:1.15rem; font-weight:800; display:block; line-height:1.2;">KLS GIT Belgaum</span>
-        <span style="font-size:0.68rem; color:var(--accent-cyan); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block;">Campus Activity Hub</span>
+      <div class="brand-logo-wrapper">
+        <img src="/images/kls_git_logo.png" alt="KLS GIT Logo" class="brand-logo-img" />
+        <span class="brand-pulse-dot" title="Live Campus Portal"></span>
+      </div>
+      <div class="brand-text-col">
+        <span class="brand-title">KLS GIT Belgaum</span>
+        <span class="brand-subtitle"><span class="brand-badge-text">AUTONOMOUS</span> • CAMPUS HUB</span>
       </div>
     </a>
+    
     <div class="public-nav-links">
-      <a href="/index.html#events-section" class="nav-link">Upcoming Events</a>
-      <a href="/index.html#clubs-section" class="nav-link">Clubs & Societies</a>
+      <a href="/index.html#events-section" class="nav-link"><span class="nav-link-icon">⚡</span><span>Upcoming Events</span></a>
+      <a href="/index.html#clubs-section" class="nav-link active"><span class="nav-link-icon">🏛️</span><span>Clubs & Societies</span></a>
+      <a href="/index.html#calendar-section" class="nav-link"><span class="nav-link-icon">🗓️</span><span>Calendar</span></a>
+      <a href="/verify-certificate.html" class="nav-link cert-nav-link"><span class="nav-link-icon">🛡️</span><span>Verify Cert</span><span class="nav-pill-badge">Official</span></a>
     </div>
-    <div id="nav-auth-container"></div>
+
+    <div class="public-nav-right">
+      <div id="nav-auth-container">
+        <!-- Dynamic authentication buttons injected via JS -->
+      </div>
+      <button class="nav-toggle-btn" id="nav-toggle-btn" aria-label="Toggle navigation menu" onclick="toggleMobileNav()">
+        <span class="bar bar-1"></span>
+        <span class="bar bar-2"></span>
+        <span class="bar bar-3"></span>
+      </button>
+    </div>
   </div>
 </nav>
+
+<!-- Mobile Navigation Drawer & Backdrop -->
+<div class="mobile-nav-backdrop" id="mobile-nav-backdrop" onclick="closeMobileNav()"></div>
+<aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-label="Mobile Navigation Drawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">
+      <img src="/images/kls_git_logo.png" alt="KLS GIT Logo" class="drawer-logo" />
+      <div>
+        <div class="drawer-title">KLS GIT Belgaum</div>
+        <div class="drawer-subtitle">Campus Activity Hub</div>
+      </div>
+    </div>
+    <button class="drawer-close-btn" onclick="closeMobileNav()" aria-label="Close navigation menu">✕</button>
+  </div>
+
+  <div class="drawer-content">
+    <div class="drawer-group-label">EXPLORE CAMPUS</div>
+    <nav class="drawer-links-list">
+      <a href="/index.html#events-section" class="drawer-nav-item" onclick="closeMobileNav()">
+        <div class="drawer-nav-icon-box bg-purple-tint">⚡</div>
+        <div class="drawer-nav-meta">
+          <div class="drawer-nav-title">Upcoming Events</div>
+          <div class="drawer-nav-desc">Hackathons, cultural fests & workshops</div>
+        </div>
+      </a>
+      <a href="/index.html#clubs-section" class="drawer-nav-item" onclick="closeMobileNav()" style="background: #eef2ff; border-color: rgba(99,102,241,0.3);">
+        <div class="drawer-nav-icon-box bg-cyan-tint">🏛️</div>
+        <div class="drawer-nav-meta">
+          <div class="drawer-nav-title" style="color:#4338ca;">Clubs & Societies</div>
+          <div class="drawer-nav-desc">Technical chapters, cultural & sports</div>
+        </div>
+      </a>
+      <a href="/index.html#calendar-section" class="drawer-nav-item" onclick="closeMobileNav()">
+        <div class="drawer-nav-icon-box bg-amber-tint">🗓️</div>
+        <div class="drawer-nav-meta">
+          <div class="drawer-nav-title">Campus Calendar</div>
+          <div class="drawer-nav-desc">Upcoming schedules & activity dates</div>
+        </div>
+      </a>
+      <a href="/verify-certificate.html" class="drawer-nav-item" onclick="closeMobileNav()">
+        <div class="drawer-nav-icon-box bg-emerald-tint">🛡️</div>
+        <div class="drawer-nav-meta">
+          <div class="drawer-nav-title">Verify Certificate</div>
+          <div class="drawer-nav-desc">Institutional credentials & VTU points</div>
+        </div>
+        <span class="badge badge-green" style="font-size: 0.65rem;">VTU</span>
+      </a>
+    </nav>
+
+    <div class="drawer-divider"></div>
+    <div class="drawer-group-label">ACCOUNT & PORTAL</div>
+    <div id="mobile-nav-auth" class="drawer-auth-section">
+      <!-- Dynamic authentication buttons injected via JS -->
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <div class="drawer-footer-text">
+      <strong>KLS Gogte Institute of Technology</strong><br/>
+      Autonomous Institution under VTU, Belagavi
+    </div>
+  </div>
+</aside>
 
 <main class="page-container" style="max-width: 1200px; margin: 30px auto; padding: 0 20px;">
 

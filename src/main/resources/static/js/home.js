@@ -64,33 +64,9 @@ async function loadLiveSiteSettings() {
 
 // Update top navbar according to user login state
 function updateNavAuthUI() {
-    const navAuthContainer = document.getElementById('nav-auth-container');
-    if (!navAuthContainer) return;
-
-    const token = getToken();
-    const role = getRole();
-    const name = getUserName() || 'User';
-
-    if (token && role) {
-        navAuthContainer.innerHTML = `
-            <div style="display:flex; align-items:center; gap: 12px;">
-                <span class="badge badge-purple" style="font-size:0.8rem; padding: 5px 10px;">👋 ${name}</span>
-                <button class="btn btn-primary btn-sm" onclick="redirectByRole()">
-                    📊 My Dashboard
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="logout()">
-                    Sign Out
-                </button>
-            </div>
-        `;
-    } else {
-        navAuthContainer.innerHTML = `
-            <div style="display:flex; align-items:center; gap: 10px;">
-                <button class="btn btn-primary btn-sm" onclick="openLoginModal()">
-                    🔐 Sign In
-                </button>
-            </div>
-        `;
+    if (typeof syncPublicNavAuth === 'function') {
+        syncPublicNavAuth();
+        return;
     }
 }
 

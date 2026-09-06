@@ -53,6 +53,9 @@ document.addEventListener('keydown', (e) => {
         if (activeModal && activeModal.id) {
             closeModal(activeModal.id);
         }
+        if (typeof closeMobileNav === 'function') {
+            closeMobileNav();
+        }
     }
 });
 
@@ -633,4 +636,105 @@ async function handleStudentRegister(e) {
     }
     return false;
 }
+
+// ============================================================
+// MOBILE NAVIGATION DRAWER & AUTH CONTROLS
+// ============================================================
+
+function toggleMobileNav() {
+    const drawer = document.getElementById('mobile-nav-drawer');
+    const backdrop = document.getElementById('mobile-nav-backdrop');
+    const toggleBtn = document.getElementById('nav-toggle-btn');
+    if (!drawer) return;
+
+    const isOpen = drawer.classList.contains('open');
+    if (isOpen) {
+        closeMobileNav();
+    } else {
+        drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('open');
+        if (toggleBtn) toggleBtn.classList.add('active');
+        document.body.classList.add('mobile-nav-open');
+    }
+}
+
+function closeMobileNav() {
+    const drawer = document.getElementById('mobile-nav-drawer');
+    const backdrop = document.getElementById('mobile-nav-backdrop');
+    const toggleBtn = document.getElementById('nav-toggle-btn');
+    if (drawer) drawer.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    if (toggleBtn) toggleBtn.classList.remove('active');
+    document.body.classList.remove('mobile-nav-open');
+}
+
+// Global update for Nav & Mobile Drawer Auth UI
+function syncPublicNavAuth() {
+    const navAuthContainer = document.getElementById('nav-auth-container');
+    const mobileAuthContainer = document.getElementById('mobile-nav-auth');
+
+    if (!navAuthContainer && !mobileAuthContainer) return;
+
+    const token = getToken();
+    const role = getRole();
+    const name = getUserName() || 'Student';
+
+    if (token && role) {
+        if (navAuthContainer) {
+            navAuthContainer.innerHTML = `
+                <div class="nav-auth-logged-in">
+                    <span class="badge badge-purple nav-user-badge">👋 ${name}</span>
+                    <button class="btn btn-primary btn-sm" onclick="redirectByRole()">
+                        📊 Dashboard
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()" title="Sign Out">
+                        Sign Out
+                    </button>
+                </div>
+            `;
+        }
+        if (mobileAuthContainer) {
+            mobileAuthContainer.innerHTML = `
+                <div class="drawer-user-card">
+                    <div class="drawer-user-info">
+                        <div class="drawer-user-avatar">👤</div>
+                        <div>
+                            <div class="drawer-user-name">${name}</div>
+                            <div class="drawer-user-role">${role}</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="closeMobileNav(); redirectByRole();" style="margin-bottom:8px;">
+                        📊 Open Dashboard
+                    </button>
+                    <button class="btn btn-secondary btn-block" onclick="logout()">
+                        🚪 Sign Out
+                    </button>
+                </div>
+            `;
+        }
+    } else {
+        if (navAuthContainer) {
+            navAuthContainer.innerHTML = `
+                <button class="btn btn-primary btn-sm nav-signin-btn" onclick="if (typeof openLoginModal === 'function') openLoginModal(); else if (typeof openModal === 'function') openModal('loginModal'); else window.location.href='/index.html';">
+                    🔐 Sign In
+                </button>
+            `;
+        }
+        if (mobileAuthContainer) {
+            mobileAuthContainer.innerHTML = `
+                <button class="btn btn-primary btn-block" onclick="closeMobileNav(); if (typeof openLoginModal === 'function') openLoginModal(); else if (typeof openModal === 'function') openModal('loginModal'); else window.location.href='/index.html';">
+                    🔐 Sign In to Portal
+                </button>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:8px;">
+                    Access registrations, QR tickets & certificates
+                </div>
+            `;
+        }
+    }
+}
+
+// Auto-initialize nav auth on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    syncPublicNavAuth();
+});
 
