@@ -36,3 +36,5 @@ build/
 scratch/
 **/scratch/
 *.log
+*.sql
+*.dump
