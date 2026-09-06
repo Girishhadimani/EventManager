@@ -1811,15 +1811,13 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
 }
 
 .brand-subtitle {
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.6px;
+  color: #0284c7;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   margin-top: 1px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  display: block;
   white-space: nowrap;
 }
 
