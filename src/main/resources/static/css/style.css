@@ -1769,14 +1769,14 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
 
 .public-nav-links .nav-link:hover { color: var(--accent-purple); }
 
-/* Hero Section with Prominent College Campus Background */
+/* Hero Section with Vibrant, Crystal-Clear College Campus Background */
 .hub-hero {
   position: relative;
-  padding: 95px 24px 85px;
+  padding: 100px 24px 90px;
   text-align: center;
   background: 
-    linear-gradient(180deg, rgba(15, 23, 42, 0.38) 0%, rgba(15, 23, 42, 0.46) 50%, rgba(15, 23, 42, 0.76) 100%),
-    url('/images/kls_git_campus.jpg') center 35%/cover no-repeat;
+    linear-gradient(180deg, rgba(10, 16, 32, 0.22) 0%, rgba(10, 16, 32, 0.32) 45%, rgba(10, 16, 32, 0.65) 100%),
+    url('/images/kls_git_campus.jpg') center 32%/cover no-repeat;
   border-bottom: 1px solid var(--border);
   color: #ffffff;
 }
@@ -1785,17 +1785,17 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 18px;
+  padding: 7px 20px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(15, 23, 42, 0.72);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
   color: #ffffff;
   font-size: 0.82rem;
   font-weight: 700;
   margin-bottom: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .live-pulse-dot {
@@ -1820,10 +1820,10 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
   font-weight: 900;
   letter-spacing: -1.2px;
   line-height: 1.15;
-  color: #ffffff;
+  color: #ffffff !important;
   max-width: 880px;
   margin: 0 auto 18px;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 3px 20px rgba(0, 0, 0, 0.85), 0 1px 4px rgba(0, 0, 0, 0.95);
 }
 
 .text-gradient-flow {
@@ -1847,31 +1847,33 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
 }
 
 .hub-hero p {
-  color: #f1f5f9;
-  font-size: 1.12rem;
+  color: #ffffff !important;
+  font-size: 1.15rem;
   line-height: 1.65;
   max-width: 680px;
   margin: 0 auto 30px;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+  font-weight: 600;
 }
 
 .hub-hero p strong {
-  color: #ffffff;
+  color: #ffffff !important;
+  font-weight: 800;
 }
 
 .hub-hero .btn-secondary {
-  background: rgba(255, 255, 255, 0.92);
-  color: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(8px);
-  font-weight: 700;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 700 !important;
 }
 
 .hub-hero .btn-secondary:hover {
-  background: #ffffff;
-  color: #0f172a;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
 }
 
 .hub-search-box {
