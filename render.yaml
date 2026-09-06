@@ -1,3 +1,9 @@
+databases:
+  - name: eventmanager-db
+    databaseName: club_management
+    user: postgres
+    plan: free
+
 services:
   - type: web
     name: event-manager
@@ -10,7 +16,13 @@ services:
         value: 8080
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
+      - key: DATABASE_URL
+        fromDatabase:
+          name: eventmanager-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION
         value: 86400000
+      - key: APP_MAIL_ENABLED
+        value: "false"
