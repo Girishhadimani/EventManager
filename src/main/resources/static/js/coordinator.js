@@ -1208,8 +1208,7 @@ async function openCameraScannerModal() {
     return;
   }
 
-  const modal = document.getElementById('camera-qr-modal');
-  if (modal) modal.classList.add('open');
+  openModal('camera-qr-modal');
 
   const feedback = document.getElementById('qr-scan-feedback');
   if (feedback) {
@@ -1301,7 +1300,6 @@ async function closeCameraScannerModal() {
     }
     isScannerScanning = false;
   }
-  const modal = document.getElementById('camera-qr-modal');
-  if (modal) modal.classList.remove('open');
+  closeModal('camera-qr-modal');
 }
 

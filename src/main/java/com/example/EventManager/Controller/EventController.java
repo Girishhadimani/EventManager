@@ -51,6 +51,16 @@ public class EventController {
         return ResponseEntity.ok(eventService.getPendingEvents());
     }
 
+    /** Coordinator gets all events for their assigned club */
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('COORDINATOR')")
+    public ResponseEntity<List<Event>> getMyClubEvents(@AuthenticationPrincipal User currentUser) {
+        if (currentUser == null || currentUser.getClub() == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(eventService.getEventsByClub(currentUser.getClub().getId()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Event> getEvent(@PathVariable Long id) {
         return ResponseEntity.ok(eventService.getEventById(id));

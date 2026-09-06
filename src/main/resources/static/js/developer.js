@@ -44,6 +44,16 @@ function showSection(name) {
   document.getElementById('page-title').textContent = title;
   document.getElementById('page-subtitle').textContent = sub;
 
+  const actionBtn = document.getElementById('primary-action-btn');
+  if (actionBtn) {
+    if (['clubs', 'events', 'users', 'faculty'].includes(name)) {
+      actionBtn.style.display = 'inline-block';
+      actionBtn.textContent = name === 'clubs' ? '+ Add Club' : (name === 'events' ? '+ Add Event' : (name === 'users' ? '+ Add User' : '+ Add Faculty'));
+    } else {
+      actionBtn.style.display = 'none';
+    }
+  }
+
   switch (name) {
     case 'clubs':        loadClubs();        break;
     case 'events':       loadEvents();       break;
@@ -52,6 +62,14 @@ function showSection(name) {
     case 'site-content': loadSiteSettings(); break;
   }
 }
+
+function openCreateModal() {
+  if (currentSection === 'clubs') openAddClubModal();
+  else if (currentSection === 'events') openAddEventModal();
+  else if (currentSection === 'users') openAddUserModal();
+  else if (currentSection === 'faculty') openAddFacultyModal();
+}
+window.openCreateModal = openCreateModal;
 
 // ============================================================
 // Dashboard stats
@@ -393,9 +411,18 @@ async function loadSiteSettings() {
 // ============================================================
 // Modal helpers
 // ============================================================
-function openModal(id) { document.getElementById(id).classList.add('show'); }
+function openModal(id) { 
+  const el = document.getElementById(id);
+  if (el) el.classList.add('show'); 
+  document.body.style.overflow = 'hidden';
+}
 function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
+  const el = (typeof id === 'string') ? document.getElementById(id) : id;
+  if (el) el.classList.remove('show');
+  const openModals = document.querySelectorAll('.modal-overlay.show');
+  if (openModals.length === 0) {
+    document.body.style.overflow = '';
+  }
   editingEventId = null;
   // Reset club form fields
   const clubIdEl = document.getElementById('club-id');
@@ -417,7 +444,7 @@ function closeModal(id) {
 // Close modal on overlay click
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.classList.remove('show');
+    if (e.target === overlay) closeModal(overlay);
   });
 });
 

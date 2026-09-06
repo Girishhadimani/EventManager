@@ -1196,27 +1196,43 @@ function displayTicketPass(reg) {
     }
   }
 
-  // Render dynamic scannable ZXing QR Code
+  // Render dynamic scannable QR Code
   const qrString = reg.qrCodeData || reg.registrationNumber || `REG-${reg.id}`;
   const qrBox = document.getElementById('ticket-qr-box');
   if (qrBox) {
-    const escapedQr = escapeHtml(qrString);
-    qrBox.innerHTML = `
-      <img src="/api/registrations/${reg.id}/qr-code" 
-           alt="Entry Ticket QR Pass" 
-           style="width:160px; height:160px; border-radius:10px; background:#fff; padding:6px; box-shadow:0 4px 14px rgba(0,0,0,0.3); object-fit:contain;"
-           onerror="this.onerror=null; this.parentElement.innerHTML = generateQRCodeSVG('${escapedQr}', 140);" />
-    `;
+    qrBox.innerHTML = generateQRCodeSVG(qrString, 160);
   }
 
   // Update Download QR link
   const downloadLink = document.getElementById('ticket-download-btn');
   if (downloadLink) {
-    downloadLink.href = `/api/registrations/${reg.id}/qr-code`;
-    downloadLink.setAttribute('download', `Ticket-${reg.registrationNumber || reg.id}-QR.png`);
+    downloadLink.onclick = (e) => {
+      e.preventDefault();
+      downloadTicketQR(reg.id, reg.registrationNumber, qrString);
+    };
   }
 
   openModal('ticket-pass-modal');
+}
+
+// Download QR Code ticket pass as crisp PNG
+function downloadTicketQR(regId, regNumber, qrString) {
+  const svgStr = generateQRCodeSVG(qrString, 320);
+  const canvas = document.createElement('canvas');
+  canvas.width = 320;
+  canvas.height = 320;
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 320, 320);
+    ctx.drawImage(img, 10, 10, 300, 300);
+    const a = document.createElement('a');
+    a.download = `Ticket-${regNumber || regId}-QR.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
 }
 
 // ============================================================

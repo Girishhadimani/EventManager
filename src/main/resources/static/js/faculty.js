@@ -490,3 +490,7 @@ async function loadRegistrationOverview() {
   }
 }
 
+function openAddModal() {
+  showToast('Faculty coordinators review and approve submitted events in the Pending Review queue.', 'info');
+}
+window.openAddModal = openAddModal;

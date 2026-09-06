@@ -758,7 +758,8 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
   overflow-y: auto;
 }
 
-.modal-overlay.show { 
+.modal-overlay.show,
+.modal-overlay.open { 
   display: flex !important; 
   animation: modalOverlayFade 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
 }
@@ -769,8 +770,11 @@ tbody td:first-child { color: var(--text-primary); font-weight: 600; }
 }
 
 .modal-overlay.show .modal,
+.modal-overlay.open .modal,
 .modal-overlay.show .modal-card,
-.modal-overlay.show .ticket-pass-wrapper {
+.modal-overlay.open .modal-card,
+.modal-overlay.show .ticket-pass-wrapper,
+.modal-overlay.open .ticket-pass-wrapper {
   animation: modalContentZoom 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

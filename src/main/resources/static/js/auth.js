@@ -190,16 +190,24 @@ function togglePasswordVisibility(inputId, btn) {
 }
 
 function openLoginModal(tab) {
-    openModal('loginModal');
-    const roleSelect = document.getElementById('role');
-    if (roleSelect && !roleSelect.value) {
-        roleSelect.value = 'USER';
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        openModal('loginModal');
+        const roleSelect = document.getElementById('role');
+        if (roleSelect && !roleSelect.value) {
+            roleSelect.value = 'USER';
+        }
+        if (tab === 'register') switchAuthTab('register');
+    } else {
+        window.location.href = '/index.html' + (tab === 'register' ? '?tab=register' : '');
     }
-    if (tab === 'register') switchAuthTab('register');
 }
 
 function closeLoginModal() {
-    closeModal('loginModal');
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        closeModal('loginModal');
+    }
     window._emailVerified = false;
     window._currentVerifiedEmail = '';
     const otpRow = document.getElementById('otp-verify-row');
@@ -750,14 +758,14 @@ function syncPublicNavAuth() {
     } else {
         if (navAuthContainer) {
             navAuthContainer.innerHTML = `
-                <button class="btn btn-primary btn-sm nav-signin-btn" onclick="if (typeof openLoginModal === 'function') openLoginModal(); else if (typeof openModal === 'function') openModal('loginModal'); else window.location.href='/index.html';">
+                <button class="btn btn-primary btn-sm nav-signin-btn" onclick="if (typeof openLoginModal === 'function') openLoginModal(); else if (document.getElementById('loginModal')) openModal('loginModal'); else window.location.href='/index.html';">
                     🔐 Sign In
                 </button>
             `;
         }
         if (mobileAuthContainer) {
             mobileAuthContainer.innerHTML = `
-                <button class="btn btn-primary btn-block" onclick="closeMobileNav(); if (typeof openLoginModal === 'function') openLoginModal(); else if (typeof openModal === 'function') openModal('loginModal'); else window.location.href='/index.html';">
+                <button class="btn btn-primary btn-block" onclick="closeMobileNav(); if (typeof openLoginModal === 'function') openLoginModal(); else if (document.getElementById('loginModal')) openModal('loginModal'); else window.location.href='/index.html';">
                     🔐 Sign In to Portal
                 </button>
                 <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:8px;">
@@ -767,6 +775,13 @@ function syncPublicNavAuth() {
         }
     }
 }
+
+// Global Mobile Sidebar Toggle (for internal dashboards)
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('open');
+}
+window.toggleSidebar = toggleSidebar;
 
 // Auto-initialize nav auth on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
