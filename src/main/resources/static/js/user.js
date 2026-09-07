@@ -1,7 +1,7 @@
 // user.js — Student Portal & Integrated Tool Engines Workspace
 'use strict';
 
-// Local safety fallback for escapeHtml
+// Local safety fallback for escapeHtml (auth.js already declares function escapeHtml)
 if (typeof window.escapeHtml !== 'function') {
   window.escapeHtml = function(str) {
     if (str === null || str === undefined) return '';
@@ -13,17 +13,21 @@ if (typeof window.escapeHtml !== 'function') {
       .replace(/'/g, '&#39;');
   };
 }
-const escapeHtml = window.escapeHtml;
 
-if (!requireRole('USER')) { /* redirected */ }
-else { init(); }
-
+// Global state variables
 let allEvents = [];
 let myRegistrations = [];
 let allClubs = [];
 let activeWorkspaceEvent = null;
 let activeRegFilter = 'ALL';
 let activeRegSearch = '';
+
+// Determine session & role mode dynamically
+let currentRole = typeof getRole === 'function' ? getRole() : null;
+let currentToken = typeof getToken === 'function' ? getToken() : null;
+let isStaffPreview = !!(currentToken && ['DEVELOPER', 'COORDINATOR', 'FACULTY_COORDINATOR'].includes(currentRole));
+let isStudentUser = !!(currentToken && currentRole === 'USER');
+let isGuest = !currentToken || !currentRole;
 
 // Coding Engine State
 const codeTemplates = {
@@ -113,17 +117,54 @@ let eventsLoadingTimer = null;
 let regsLoadingTimer = null;
 
 async function init() {
-  document.getElementById('user-name').textContent   = getUserName() || 'Student';
-  document.getElementById('user-avatar').textContent = (getUserName() || 'S')[0].toUpperCase();
+  currentRole = typeof getRole === 'function' ? getRole() : null;
+  currentToken = typeof getToken === 'function' ? getToken() : null;
+  isStaffPreview = !!(currentToken && ['DEVELOPER', 'COORDINATOR', 'FACULTY_COORDINATOR'].includes(currentRole));
+  isStudentUser = !!(currentToken && currentRole === 'USER');
+  isGuest = !currentToken || !currentRole;
 
-  // Load events, registrations, and clubs concurrently so one slow endpoint doesn't block others
-  Promise.allSettled([
-    loadEvents(),
-    loadMyRegistrations(),
-    loadClubs()
-  ]).then(() => {
+  const userName = typeof getUserName === 'function' ? getUserName() : '';
+  const userRole = currentRole;
+  const nameEl = document.getElementById('user-name');
+  const avatarEl = document.getElementById('user-avatar');
+  const roleEl = document.querySelector('.user-role');
+  const signOutBtn = document.getElementById('btn-sign-out') || document.querySelector('.sidebar-footer .btn');
+
+  if (isStaffPreview) {
+    if (nameEl) nameEl.textContent = userName || `${userRole} Preview`;
+    if (avatarEl) avatarEl.textContent = (userName || userRole || 'A')[0].toUpperCase();
+    if (roleEl) roleEl.innerHTML = `<span style="color:var(--accent-cyan); font-weight:700; font-size:0.75rem;">${userRole} (PREVIEW)</span>`;
+    showStaffPreviewBanner(userRole);
+  } else if (isStudentUser) {
+    if (nameEl) nameEl.textContent = userName || 'Student';
+    if (avatarEl) avatarEl.textContent = (userName || 'S')[0].toUpperCase();
+    if (roleEl) roleEl.textContent = 'USER';
+  } else {
+    // Guest Student Mode
+    if (nameEl) nameEl.textContent = 'Guest Student';
+    if (avatarEl) avatarEl.textContent = 'G';
+    if (roleEl) roleEl.innerHTML = `<span style="color:var(--text-muted); font-size:0.75rem;">Public View</span>`;
+    if (signOutBtn) {
+      signOutBtn.innerHTML = '🔑 Sign In / Register';
+      signOutBtn.onclick = () => openLoginModal('login');
+      signOutBtn.classList.remove('btn-secondary');
+      signOutBtn.classList.add('btn-primary');
+    }
+  }
+
+  // Load events and clubs concurrently; registrations only if authenticated
+  const loadTasks = [loadEvents(), loadClubs()];
+  if (isStudentUser || isStaffPreview) {
+    loadTasks.push(loadMyRegistrations().catch(err => console.warn('Registrations load skipped/failed:', err)));
+  }
+
+  Promise.allSettled(loadTasks).then(() => {
     if (typeof initCanvas === 'function') {
       initCanvas();
+    }
+    // Re-render events once registrations are loaded so "Workspace" vs "Register" buttons update
+    if (allEvents && allEvents.length > 0) {
+      renderEvents(allEvents);
     }
   });
 
@@ -144,6 +185,39 @@ async function init() {
     };
     setTimeout(tryOpen, 100);
   }
+}
+
+function showStaffPreviewBanner(role) {
+  const returnMap = {
+    'COORDINATOR': ['/coordinator.html', 'Coordinator Portal'],
+    'DEVELOPER': ['/developer.html', 'Developer Portal'],
+    'FACULTY_COORDINATOR': ['/faculty.html', 'Faculty Portal']
+  };
+  const [returnUrl, portalTitle] = returnMap[role] || ['/index.html', 'Admin Portal'];
+
+  let banner = document.getElementById('staff-preview-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'staff-preview-banner';
+    banner.style.cssText = 'background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.18)); border-bottom: 1px solid rgba(99, 102, 241, 0.35); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; z-index: 100;';
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.insertBefore(banner, mainContent.firstChild);
+    }
+  }
+
+  banner.innerHTML = `
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:1.1rem;">👀</span>
+      <div>
+        <strong style="color:var(--accent-cyan); font-size:0.875rem;">Student Portal Preview Mode (${escapeHtml(role)})</strong>
+        <span style="color:var(--text-secondary); font-size:0.8rem; margin-left:6px;">Viewing campus events and tools as experienced by students</span>
+      </div>
+    </div>
+    <a href="${returnUrl}" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 12px; font-weight:600; text-decoration:none;">
+      ← Return to ${portalTitle}
+    </a>
+  `;
 }
 
 // ============================================================
@@ -192,11 +266,57 @@ function showSection(name) {
   }
 
   if (name === 'my-registrations') {
-    loadMyRegistrations();
+    if (!getToken()) {
+      const tbody = document.getElementById('my-reg-tbody');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center; padding:48px 16px;">
+              <div style="font-size:2.5rem; margin-bottom:12px;">🔒</div>
+              <h3 style="font-size:1.1rem; color:var(--text-primary); margin-bottom:6px;">Student Sign In Required</h3>
+              <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:16px;">Sign in to view your registered events, access workspaces, and download ticket passes.</p>
+              <button class="btn btn-primary" onclick="openLoginModal('login')">🔑 Sign In to View Registrations</button>
+            </td>
+          </tr>
+        `;
+      }
+    } else {
+      loadMyRegistrations();
+    }
   } else if (name === 'certificates') {
-    loadMyCertificatesTab();
+    if (!getToken()) {
+      const certContainer = document.getElementById('my-certificates-container');
+      if (certContainer) {
+        certContainer.innerHTML = `
+          <div class="empty-state" style="padding:48px 16px; text-align:center;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">🎓</div>
+            <h3 style="font-size:1.1rem; color:var(--text-primary); margin-bottom:6px;">Student Sign In Required</h3>
+            <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:16px;">Sign in to view, verify, and download your earned certificates.</p>
+            <button class="btn btn-primary" onclick="openLoginModal('login')">🔑 Sign In to View Certificates</button>
+          </div>
+        `;
+      }
+    } else {
+      loadMyCertificatesTab();
+    }
   } else if (name === 'vtu-points') {
-    loadVtuPointsTab();
+    if (!getToken()) {
+      const ledgerBody = document.getElementById('vtu-ledger-tbody');
+      if (ledgerBody) {
+        ledgerBody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; padding:48px 16px;">
+              <div style="font-size:2.5rem; margin-bottom:12px;">📊</div>
+              <h3 style="font-size:1.1rem; color:var(--text-primary); margin-bottom:6px;">Student Sign In Required</h3>
+              <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:16px;">Sign in to track your VTU AICTE 100 Activity Points.</p>
+              <button class="btn btn-primary" onclick="openLoginModal('login')">🔑 Sign In to Track Points</button>
+            </td>
+          </tr>
+        `;
+      }
+    } else {
+      loadVtuPointsTab();
+    }
   }
 }
 
@@ -235,9 +355,26 @@ async function loadEvents() {
   }
 
   try {
-    allEvents = await apiFetch('/api/events/approved');
-    clearTimeout(eventsLoadingTimer);
-    renderEvents(allEvents);
+    let data = null;
+    try {
+      data = await apiFetch('/api/events/approved');
+    } catch (apiErr) {
+      console.warn('apiFetch failed for /api/events/approved, attempting direct unauthenticated fetch:', apiErr.message);
+      const fallback = await fetch('/api/events/approved');
+      if (fallback.ok) {
+        data = await fallback.json();
+      } else {
+        throw apiErr;
+      }
+    }
+
+    if (Array.isArray(data)) {
+      allEvents = data;
+      clearTimeout(eventsLoadingTimer);
+      renderEvents(allEvents);
+    } else {
+      throw new Error('Unexpected data format from events endpoint');
+    }
   } catch (err) {
     clearTimeout(eventsLoadingTimer);
     console.error('Failed to load events:', err);
@@ -265,6 +402,7 @@ async function loadEvents() {
 }
 
 async function loadMyRegistrations() {
+  if (!getToken()) return;
   const tbody = document.getElementById('my-reg-tbody');
   if (tbody && (!myRegistrations || myRegistrations.length === 0)) {
     tbody.innerHTML = `
@@ -290,6 +428,9 @@ async function loadMyRegistrations() {
     clearTimeout(regsLoadingTimer);
     updateRegNavBadge();
     renderMyRegistrations();
+    if (allEvents && allEvents.length > 0) {
+      renderEvents(allEvents);
+    }
   } catch (err) {
     clearTimeout(regsLoadingTimer);
     console.error('Failed to load registrations:', err);
@@ -323,8 +464,19 @@ function updateRegNavBadge() {
 async function loadClubs() {
   const grid = document.getElementById('clubs-grid');
   try {
-    allClubs = await apiFetch('/api/clubs');
-    renderClubs(allClubs);
+    let clubs = null;
+    try {
+      clubs = await apiFetch('/api/clubs');
+    } catch (apiErr) {
+      console.warn('apiFetch failed for /api/clubs, trying direct fetch:', apiErr.message);
+      const fallback = await fetch('/api/clubs');
+      if (fallback.ok) clubs = await fallback.json();
+      else throw apiErr;
+    }
+    if (Array.isArray(clubs)) {
+      allClubs = clubs;
+      renderClubs(allClubs);
+    }
   } catch (err) {
     console.error('Failed to load clubs:', err);
     if (grid && (!allClubs || allClubs.length === 0)) {
@@ -349,6 +501,7 @@ let activeRegisteringEvent = null;
 
 function renderEvents(events) {
   const grid = document.getElementById('events-grid');
+  if (!grid) return;
   if (!events || !events.length) {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1; padding:48px 20px;">
@@ -362,70 +515,77 @@ function renderEvents(events) {
   }
 
   grid.innerHTML = events.map(e => {
-    const reg = myRegistrations.find(r => (r.eventId === e.id || (r.event && r.event.id === e.id)) && r.status !== 'CANCELLED');
-    const typeBadge = formatTypeBadge(e.eventType);
-    const toolChips = (e.tools && e.tools.length)
-      ? e.tools.map(t => `<span class="tool-badge-chip">${formatToolName(t)}</span>`).join('')
-      : '<span style="font-size:0.75rem; color:var(--text-muted);">Standard Entry</span>';
+    try {
+      const reg = Array.isArray(myRegistrations)
+        ? myRegistrations.find(r => (r.eventId === e.id || (r.event && r.event.id === e.id)) && r.status !== 'CANCELLED')
+        : null;
+      const typeBadge = formatTypeBadge(e.eventType);
+      const toolChips = (e.tools && e.tools.length)
+        ? e.tools.map(t => `<span class="tool-badge-chip">${formatToolName(t)}</span>`).join('')
+        : '<span style="font-size:0.75rem; color:var(--text-muted);">Standard Entry</span>';
 
-    const maxCap = e.maxParticipants ? `${e.maxParticipants} Seats Max` : 'Open Capacity';
-    const timeDisplay = e.startTime
-      ? `${e.date} (${e.startTime}${e.endTime ? ' - ' + e.endTime : ''})`
-      : (e.time ? `${e.date} (${e.time})` : e.date);
+      const maxCap = e.maxParticipants ? `${e.maxParticipants} Seats Max` : 'Open Capacity';
+      const timeDisplay = e.startTime
+        ? `${e.date} (${e.startTime}${e.endTime ? ' - ' + e.endTime : ''})`
+        : (e.time ? `${e.date} (${e.time})` : (e.date || 'TBA'));
 
-    return `
-      <div class="event-card" onclick="openEventDetails(${e.id})" style="cursor:pointer; position:relative;" title="Click to view event details">
-        <div class="event-card-stripe"></div>
-        <div class="event-card-body">
-          <div class="event-card-badges">
-            ${typeBadge}
-            <span class="event-card-club">🏗️ ${e.club ? e.club.name : 'College Club'}</span>
-          </div>
-
-          <h3 class="event-card-title" title="Click to view full event details">
-            ${e.title}
-          </h3>
-
-          <p class="event-card-desc">
-            ${e.description || 'Join this exciting college club activity and participate in competitions.'}
-          </p>
-
-          <div class="event-card-tools">
-            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">AVAILABLE TOOLS:</div>
-            <div class="tool-chips-container">${toolChips}</div>
-          </div>
-
-          <div class="event-card-meta">
-            <div>📅 ${timeDisplay}</div>
-            <div>📍 ${e.venue || 'Campus Center'} • 👥 ${maxCap}</div>
-          </div>
-
-          <div class="event-card-footer">
-            <button class="btn btn-secondary" style="flex:1;" onclick="event.stopPropagation(); openEventDetails(${e.id})">
-              🔍 Details
-            </button>
-            ${reg
-              ? `
-                <button class="btn btn-primary" style="flex:1.2;" onclick="event.stopPropagation(); openWorkspace(${e.id})">
-                  🚀 Workspace
-                </button>
-              `
-              : `
-                <button class="btn btn-primary" style="flex:1.2;" onclick="event.stopPropagation(); openRegistrationModal(${e.id})">
-                  🎟️ Register
-                </button>
-              `
-            }
-          </div>
-          ${reg ? `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); border-radius:6px; padding:5px 10px; margin-top:2px;" onclick="event.stopPropagation()">
-              <span style="font-size:0.75rem; font-weight:700; color:var(--accent-green);">✓ ${reg.status}</span>
-              <span style="font-size:0.75rem; font-family:monospace; color:var(--accent-cyan); cursor:pointer;" onclick="viewTicketPassById(${reg.id})">🎫 ${reg.registrationNumber || 'PASS'}</span>
+      return `
+        <div class="event-card" onclick="openEventDetails(${e.id})" style="cursor:pointer; position:relative;" title="Click to view event details">
+          <div class="event-card-stripe"></div>
+          <div class="event-card-body">
+            <div class="event-card-badges">
+              ${typeBadge}
+              <span class="event-card-club">🏗️ ${e.club ? (window.escapeHtml ? window.escapeHtml(e.club.name) : e.club.name) : 'College Club'}</span>
             </div>
-          ` : ''}
+
+            <h3 class="event-card-title" title="Click to view full event details">
+              ${window.escapeHtml ? window.escapeHtml(e.title || 'Event') : (e.title || 'Event')}
+            </h3>
+
+            <p class="event-card-desc">
+              ${window.escapeHtml ? window.escapeHtml(e.description || 'Join this exciting college club activity and participate in competitions.') : (e.description || 'Join this exciting college club activity and participate in competitions.')}
+            </p>
+
+            <div class="event-card-tools">
+              <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">AVAILABLE TOOLS:</div>
+              <div class="tool-chips-container">${toolChips}</div>
+            </div>
+
+            <div class="event-card-meta">
+              <div>📅 ${timeDisplay}</div>
+              <div>📍 ${(window.escapeHtml ? window.escapeHtml(e.venue || 'Campus Center') : (e.venue || 'Campus Center'))} • 👥 ${maxCap}</div>
+            </div>
+
+            <div class="event-card-footer">
+              <button class="btn btn-secondary" style="flex:1;" onclick="event.stopPropagation(); openEventDetails(${e.id})">
+                🔍 Details
+              </button>
+              ${reg
+                ? `
+                  <button class="btn btn-primary" style="flex:1.2;" onclick="event.stopPropagation(); openWorkspace(${e.id})">
+                    🚀 Workspace
+                  </button>
+                `
+                : `
+                  <button class="btn btn-primary" style="flex:1.2;" onclick="event.stopPropagation(); openRegistrationModal(${e.id})">
+                    🎟️ Register
+                  </button>
+                `
+              }
+            </div>
+            ${reg ? `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); border-radius:6px; padding:5px 10px; margin-top:2px;" onclick="event.stopPropagation()">
+                <span style="font-size:0.75rem; font-weight:700; color:var(--accent-green);">✓ ${reg.status}</span>
+                <span style="font-size:0.75rem; font-family:monospace; color:var(--accent-cyan); cursor:pointer;" onclick="viewTicketPassById(${reg.id})">🎫 ${reg.registrationNumber || 'PASS'}</span>
+              </div>
+            ` : ''}
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    } catch (cardErr) {
+      console.error('Error rendering event card for event ID:', e.id, cardErr);
+      return '';
+    }
   }).join('');
 }
 
@@ -758,6 +918,14 @@ function formatRegStatusBadge(status) {
 // Dynamic Event Registration Form Workflow
 // ============================================================
 function openRegistrationModal(eventId) {
+  if (!getToken()) {
+    sessionStorage.setItem('pendingEventRegisterId', String(eventId));
+    localStorage.setItem('pendingEventRegisterId', String(eventId));
+    showToast('Please sign in with your student account to register for this event.', 'info');
+    openLoginModal('login');
+    return;
+  }
+
   const event = allEvents.find(e => e.id === eventId);
   if (!event) return;
 
@@ -2757,3 +2925,12 @@ function renderVtuTranscriptModal() {
 function printVtuTranscript() {
   window.print();
 }
+
+// Initialize Student Portal once all functions and DOM are ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+window.init = init;
+

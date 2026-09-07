@@ -53,7 +53,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      <button class="btn btn-secondary" style="width:100%;" onclick="logout()">
+      <button class="btn btn-secondary" id="btn-sign-out" style="width:100%;" onclick="logout()">
         🚪 Sign Out
       </button>
     </div>
@@ -61,6 +61,7 @@
 
   <!-- Main content -->
   <div class="main-content">
+    <div id="staff-preview-banner" style="display:none;"></div>
     <header class="topbar">
       <div style="display:flex; align-items:center; gap:12px;">
         <button type="button" class="btn btn-secondary mobile-menu-btn" onclick="toggleSidebar()" style="display:none; padding:8px 12px; font-size:1.2rem; cursor:pointer;" aria-label="Toggle Navigation">
@@ -1009,7 +1010,201 @@ Select a language, write your code, and click "Run Tests".
   </div>
 </div>
 
-<script src="/js/auth.js?v=20260906_v16"></script>
-<script src="/js/user.js?v=20260906_v16"></script>
+<!-- Unified Auth Modal: Sign In + Create Account -->
+<div class="modal-overlay" id="loginModal" style="align-items: flex-start; padding: 20px 16px;">
+  <div class="modal-card" style="max-width: 480px; margin: auto; align-self: center; max-height: calc(100vh - 40px); overflow-y: auto;">
+
+    <!-- Header -->
+    <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px; margin-bottom: 0;">
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <span style="font-size:1.6rem;">🎓</span>
+        <div>
+          <h3 style="margin:0; font-size: 1.2rem;" id="auth-modal-title">KLS GIT — Campus Access</h3>
+          <p style="margin:0; font-size:0.73rem; color:var(--text-muted);">Gogte Institute of Technology, Belgaum</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeLoginModal()">&#x2715;</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex; gap:0; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
+      <button id="tab-signin" onclick="switchAuthTab('signin')" style="
+        flex:1; padding: 12px; background:transparent; border:none; cursor:pointer;
+        font-size: 0.88rem; font-weight: 700; color: var(--accent-purple);
+        border-bottom: 2px solid var(--accent-purple); transition: all 0.2s;
+      ">🔐 Sign In</button>
+      <button id="tab-register" onclick="switchAuthTab('register')" style="
+        flex:1; padding: 12px; background:transparent; border:none; cursor:pointer;
+        font-size: 0.88rem; font-weight: 600; color: var(--text-muted);
+        border-bottom: 2px solid transparent; transition: all 0.2s;
+      ">✨ Create Account</button>
+    </div>
+
+    <!-- ─── SIGN IN PANEL ─── -->
+    <div id="auth-panel-signin">
+      <form id="login-form" novalidate onsubmit="handleLogin(event); return false;">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <input type="email" id="email" name="email" placeholder="you@college.edu" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper" style="position:relative;">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required style="padding-right: 44px;" />
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show/hide password">👁️</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="role">Select Your Role</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🎭</span>
+            <select id="role" name="role" required>
+              <option value="" disabled selected>Select Role</option>
+              <option value="DEVELOPER">🛠 Developer / Admin</option>
+              <option value="COORDINATOR">📋 Coordinator</option>
+              <option value="FACULTY_COORDINATOR">🎓 Faculty Coordinator</option>
+              <option value="USER">👤 Student / User</option>
+            </select>
+          </div>
+        </div>
+        <div id="error-msg" class="error-msg"></div>
+        <button type="submit" id="login-btn" class="btn btn-primary" style="margin-top: 20px; width: 100%;">
+          Sign In →
+        </button>
+      </form>
+      <p style="text-align:center; margin-top:14px; font-size:0.73rem; color:var(--text-muted);">
+        New student? <span style="color:var(--accent-purple); cursor:pointer; font-weight:600;" onclick="switchAuthTab('register')">Create an account →</span>
+      </p>
+    </div>
+
+    <!-- ─── CREATE ACCOUNT PANEL ─── -->
+    <div id="auth-panel-register" style="display:none;">
+      <form id="register-form" novalidate onsubmit="handleStudentRegister(event)">
+
+        <!-- Row 1: Name + USN -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label for="reg-auth-name">Full Name *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input type="text" id="reg-auth-name" placeholder="Bhargav Mahesh" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-auth-usn">USN *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🪪</span>
+              <input type="text" id="reg-auth-usn" placeholder="2KG21CS001" required style="text-transform:uppercase;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- College Email + OTP -->
+        <div class="form-group">
+          <label for="reg-auth-email">College Email *</label>
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div class="input-wrapper" style="flex:1;">
+              <span class="input-icon">✉</span>
+              <input type="email" id="reg-auth-email" placeholder="usn@kls.ac.in or college email" required />
+            </div>
+            <button type="button" id="otp-send-btn" onclick="sendOTP()"
+              style="flex-shrink:0; padding: 10px 14px; background: var(--accent-purple); color:#fff; border:none; border-radius: var(--radius-md); cursor:pointer; font-size:0.8rem; font-weight:600; white-space:nowrap;">
+              Send OTP
+            </button>
+          </div>
+        </div>
+
+        <!-- OTP Input (hidden until sent) -->
+        <div class="form-group" id="otp-verify-row" style="display:none;">
+          <label for="reg-otp">Enter OTP <span style="color:var(--accent-green); font-size:0.75rem;" id="otp-status-text">(Check your email)</span></label>
+          <div style="display:flex; gap:8px;">
+            <div class="input-wrapper" style="flex:1;">
+              <span class="input-icon">🔢</span>
+              <input type="text" id="reg-otp" placeholder="6-digit code" maxlength="6" inputmode="numeric" />
+            </div>
+            <button type="button" onclick="verifyOTP()"
+              style="flex-shrink:0; padding: 10px 14px; background: var(--accent-green); color:#fff; border:none; border-radius: var(--radius-md); cursor:pointer; font-size:0.8rem; font-weight:600;">
+              Verify ✓
+            </button>
+          </div>
+          <div id="otp-verified-badge" style="display:none; margin-top:6px; color:var(--accent-green); font-size:0.78rem; font-weight:600;">
+            ✅ Email Verified
+          </div>
+        </div>
+
+        <!-- Row 2: Mobile + Year -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label for="reg-auth-mobile">Mobile Number *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📱</span>
+              <input type="tel" id="reg-auth-mobile" placeholder="10-digit mobile" maxlength="10" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-auth-year">Year of Study *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📚</span>
+              <select id="reg-auth-year" required>
+                <option value="" disabled selected>Select Year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Department -->
+        <div class="form-group">
+          <label for="reg-auth-dept">Department *</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🏛</span>
+            <select id="reg-auth-dept" required>
+              <option value="" disabled selected>Select Department</option>
+              <option value="CSE">Computer Science &amp; Engineering</option>
+              <option value="ISE">Information Science &amp; Engineering</option>
+              <option value="ECE">Electronics &amp; Communication</option>
+              <option value="EEE">Electrical &amp; Electronics</option>
+              <option value="ME">Mechanical Engineering</option>
+              <option value="CE">Civil Engineering</option>
+              <option value="AI-ML">AI &amp; Machine Learning</option>
+              <option value="MBA">MBA</option>
+              <option value="MCA">MCA</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="reg-auth-password">Password *</label>
+          <div class="input-wrapper" style="position:relative;">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="reg-auth-password" placeholder="Create a secure password" required style="padding-right: 44px;" />
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-auth-password', this)" title="Show/hide password">👁️</button>
+          </div>
+        </div>
+
+        <div id="reg-error-msg" class="error-msg"></div>
+
+        <button type="submit" id="register-btn" class="btn btn-primary" style="margin-top:16px; width:100%;">
+          Create Account →
+        </button>
+      </form>
+      <p style="text-align:center; margin-top:14px; font-size:0.73rem; color:var(--text-muted);">
+        Already have an account? <span style="color:var(--accent-purple); cursor:pointer; font-weight:600;" onclick="switchAuthTab('signin')">Sign In →</span>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script src="/js/auth.js?v=20260907_v18"></script>
+<script src="/js/user.js?v=20260907_v18"></script>
 </body>
 </html>

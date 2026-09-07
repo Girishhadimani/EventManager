@@ -477,7 +477,7 @@ function switchAuthTab(tab) {
 }
 
 async function sendOTP() {
-    const emailInput = document.getElementById('reg-email');
+    const emailInput = document.getElementById('reg-auth-email') || document.getElementById('reg-email');
     const email = emailInput ? emailInput.value.trim() : '';
     const errEl = document.getElementById('reg-error-msg');
     const sendBtn = document.getElementById('otp-send-btn');
@@ -526,7 +526,7 @@ async function sendOTP() {
 }
 
 async function verifyOTP() {
-    const emailInput = document.getElementById('reg-email');
+    const emailInput = document.getElementById('reg-auth-email') || document.getElementById('reg-email');
     const otpInput = document.getElementById('reg-otp');
     const errEl = document.getElementById('reg-error-msg');
     const badge = document.getElementById('otp-verified-badge');
@@ -571,13 +571,13 @@ async function handleStudentRegister(e) {
     if (e && e.preventDefault) e.preventDefault();
     if (_isRegistering) return false;
 
-    const name = document.getElementById('reg-name')?.value.trim();
-    const usn = document.getElementById('reg-usn')?.value.trim().toUpperCase();
-    const email = document.getElementById('reg-email')?.value.trim();
-    const mobile = document.getElementById('reg-mobile')?.value.trim();
-    const year = document.getElementById('reg-year')?.value;
-    const dept = document.getElementById('reg-dept')?.value;
-    const password = document.getElementById('reg-password')?.value;
+    const name = (document.getElementById('reg-auth-name') || document.getElementById('reg-name'))?.value.trim();
+    const usn = (document.getElementById('reg-auth-usn') || document.getElementById('reg-usn'))?.value.trim().toUpperCase();
+    const email = (document.getElementById('reg-auth-email') || document.getElementById('reg-email'))?.value.trim();
+    const mobile = (document.getElementById('reg-auth-mobile') || document.getElementById('reg-mobile'))?.value.trim();
+    const year = (document.getElementById('reg-auth-year') || document.getElementById('reg-year'))?.value;
+    const dept = (document.getElementById('reg-auth-dept') || document.getElementById('reg-dept'))?.value;
+    const password = (document.getElementById('reg-auth-password') || document.getElementById('reg-password'))?.value;
     const errEl = document.getElementById('reg-error-msg');
     const btn = document.getElementById('register-btn');
 
