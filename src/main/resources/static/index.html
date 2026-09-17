@@ -261,7 +261,7 @@
         </li>
         <li>
           <span class="auth-feature-dot"></span>
-          <span>Coordinators manage events, attendance, and leaderboards</span>
+          <span>Coordinators can work across different clubs to manage events, attendance, and leaderboards</span>
         </li>
       </ul>
     </div>
@@ -296,7 +296,12 @@
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrapper" style="position:relative;">
-            <span class="input-icon">&#9679;&#9679;&#9679;</span>
+            <span class="input-icon" style="display:flex; align-items:center; justify-content:center; width:16px; height:16px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
             <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required style="padding-right: 44px;" />
             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show/hide password">&#128065;</button>
           </div>
@@ -425,7 +430,12 @@
         <div class="form-group">
           <label for="reg-password">Password *</label>
           <div class="input-wrapper" style="position:relative;">
-            <span class="input-icon">&#9679;&#9679;&#9679;</span>
+            <span class="input-icon" style="display:flex; align-items:center; justify-content:center; width:16px; height:16px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
             <input type="password" id="reg-password" placeholder="Create a secure password" required style="padding-right: 44px;" />
             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-password', this)" title="Show/hide password">&#128065;</button>
           </div>
