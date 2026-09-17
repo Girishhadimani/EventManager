@@ -151,12 +151,7 @@ public class RegistrationService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
 
-        if (currentUser.getRole() == Role.COORDINATOR) {
-            Club coordClub = currentUser.getClub();
-            if (coordClub == null || !coordClub.getId().equals(event.getClub().getId())) {
-                throw new AccessDeniedException("Coordinators can only manage registrations for events of their own club.");
-            }
-        }
+        // Coordinators can work across different clubs in the campus activity hub
 
         return registrationRepository.findByEventOrderByRegisteredAtAsc(event)
                 .stream()
@@ -195,12 +190,7 @@ public class RegistrationService {
         EventRegistration reg = registrationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Registration", id));
 
-        if (currentUser.getRole() == Role.COORDINATOR) {
-            Club coordClub = currentUser.getClub();
-            if (coordClub == null || !coordClub.getId().equals(reg.getEvent().getClub().getId())) {
-                throw new AccessDeniedException("You can only modify registrations for your own club's events.");
-            }
-        }
+        // Coordinators can work across different clubs in the campus activity hub
 
         reg.setStatus(newStatus);
         if (newStatus == RegistrationStatus.ATTENDED) {
@@ -222,12 +212,7 @@ public class RegistrationService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
 
-        if (coordinator.getRole() == Role.COORDINATOR) {
-            Club coordClub = coordinator.getClub();
-            if (coordClub == null || !coordClub.getId().equals(event.getClub().getId())) {
-                throw new AccessDeniedException("You can only check-in attendees for your own club's events.");
-            }
-        }
+        // Coordinators can work across different clubs in the campus activity hub
 
         String search = ticketOrRegNumber.trim();
         Optional<EventRegistration> regOpt = registrationRepository.findByRegistrationNumber(search);
@@ -329,12 +314,7 @@ public class RegistrationService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
 
-        if (currentUser.getRole() == Role.COORDINATOR) {
-            Club coordClub = currentUser.getClub();
-            if (coordClub == null || !coordClub.getId().equals(event.getClub().getId())) {
-                throw new AccessDeniedException("Access denied to another club's analytics.");
-            }
-        }
+        // Coordinators can work across different clubs in the campus activity hub
 
         List<EventRegistration> registrations = registrationRepository.findByEvent(event);
         int total = registrations.size();

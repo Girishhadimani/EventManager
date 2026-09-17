@@ -29,6 +29,14 @@
         <span class="role-badge role-COORDINATOR">Coordinator</span>
       </div>
     </div>
+    <div style="padding: 10px 16px 14px; border-bottom: 1px solid var(--border);">
+      <label for="coord-club-select-sidebar" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700; margin-bottom:6px; display:block;">🏛 Working Club</label>
+      <div class="input-wrapper" style="margin-bottom:0;">
+        <select id="coord-club-select-sidebar" onchange="onClubSwitch(this.value)" style="padding:7px 10px; font-size:0.825rem; font-weight:600; cursor:pointer; width:100%; border:none; background:transparent;">
+          <option value="">Loading clubs...</option>
+        </select>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Club Management</div>
       <a class="nav-item active" onclick="showSection('events')">
@@ -55,7 +63,15 @@
         <h1>Coordinator Dashboard</h1>
         <p class="page-subtitle">Manage events, tools, and registrations for <strong id="club-name-display">your club</strong></p>
       </div>
-      <div class="topbar-actions">
+      <div class="topbar-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="coord-club-switcher-top" style="display:flex; align-items:center; gap:8px;">
+          <label for="coord-club-select" style="font-size:0.825rem; font-weight:600; color:var(--text-secondary); white-space:nowrap; margin-bottom:0;">🏛 Active Club:</label>
+          <div class="input-wrapper" style="min-width:200px; max-width:260px; margin-bottom:0;">
+            <select id="coord-club-select" onchange="onClubSwitch(this.value)" style="padding:7px 12px; font-size:0.85rem; font-weight:600; cursor:pointer; width:100%; border:none; background:transparent;">
+              <option value="">Loading clubs...</option>
+            </select>
+          </div>
+        </div>
         <button class="btn btn-primary" onclick="openCreateWizard()">
           <span>+</span> Create Event Wizard
         </button>
@@ -367,6 +383,15 @@
       <!-- STEP 1: Basic Information -->
       <div id="wizard-step-1" class="wizard-content-step">
         <div class="form-group">
+          <label>Organizing Club *</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🏛</span>
+            <select id="wz-club-id" required style="padding-left:44px; cursor:pointer; font-weight:600;">
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label>Event Title *</label>
           <div class="input-wrapper">
             <span class="input-icon">🎯</span>
@@ -499,6 +524,9 @@
           <div class="two-col" style="margin-bottom:16px; font-size:0.85rem;">
             <div>📆 <strong>Date & Time:</strong> <span id="prev-datetime">—</span></div>
             <div>📍 <strong>Venue:</strong> <span id="prev-venue">—</span></div>
+          </div>
+          <div style="margin-bottom:16px; font-size:0.85rem;">
+            🏛 <strong>Host Club:</strong> <span id="prev-club-name" style="font-weight:600; color:var(--accent-purple);">—</span>
           </div>
 
           <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:14px;">

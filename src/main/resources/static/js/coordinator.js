@@ -4,6 +4,7 @@
 if (!requireRole('COORDINATOR')) { /* redirected */ }
 else { init(); }
 
+let allClubs   = [];
 let myClubId   = localStorage.getItem('clubId');
 let myClubName = localStorage.getItem('clubName');
 let myEvents = [];
@@ -20,12 +21,10 @@ async function init() {
   myClubId   = localStorage.getItem('clubId');
   myClubName = localStorage.getItem('clubName');
 
-  document.getElementById('user-name').textContent         = getUserName() || 'Coordinator';
-  document.getElementById('user-avatar').textContent       = (getUserName() || 'C')[0].toUpperCase();
-  document.getElementById('club-label').textContent        = myClubName || 'My Club';
-  document.getElementById('club-name-display').textContent = myClubName || 'your club';
-  document.getElementById('club-name-card').textContent    = myClubName || 'My Club';
+  document.getElementById('user-name').textContent   = getUserName() || 'Coordinator';
+  document.getElementById('user-avatar').textContent = (getUserName() || 'C')[0].toUpperCase();
 
+  await loadClubs();
   await loadCatalog();
   await loadEvents();
 
@@ -37,6 +36,78 @@ async function init() {
       el.addEventListener('change', triggerConflictCheck);
     }
   });
+}
+
+// ============================================================
+// Multi-Club Management Engine
+// ============================================================
+async function loadClubs() {
+  try {
+    allClubs = await apiFetch('/api/clubs');
+    const topSelect  = document.getElementById('coord-club-select');
+    const sideSelect = document.getElementById('coord-club-select-sidebar');
+    const wzSelect   = document.getElementById('wz-club-id');
+
+    // Prefer saved activeClubId, else myClubId, else first available club
+    const savedActiveClubId = localStorage.getItem('activeClubId');
+    if (savedActiveClubId && allClubs.some(c => c.id == savedActiveClubId)) {
+      myClubId = savedActiveClubId;
+      const found = allClubs.find(c => c.id == savedActiveClubId);
+      if (found) myClubName = found.name;
+    } else if (myClubId && allClubs.some(c => c.id == myClubId)) {
+      const found = allClubs.find(c => c.id == myClubId);
+      if (found) myClubName = found.name;
+    } else if (allClubs.length > 0) {
+      myClubId = String(allClubs[0].id);
+      myClubName = allClubs[0].name;
+    }
+
+    const optionsHtml = allClubs.map(c =>
+      `<option value="${c.id}" ${c.id == myClubId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    if (topSelect)  topSelect.innerHTML  = optionsHtml;
+    if (sideSelect) sideSelect.innerHTML = optionsHtml;
+    if (wzSelect)   wzSelect.innerHTML   = optionsHtml;
+
+    updateClubDisplays();
+  } catch (err) {
+    console.error('Failed to load clubs:', err);
+  }
+}
+
+async function onClubSwitch(newClubId) {
+  if (!newClubId) return;
+  myClubId = String(newClubId);
+  const club = allClubs.find(c => c.id == newClubId);
+  if (club) {
+    myClubName = club.name;
+    localStorage.setItem('activeClubId', myClubId);
+    localStorage.setItem('clubId', myClubId);
+    localStorage.setItem('clubName', club.name);
+  }
+
+  const topSelect  = document.getElementById('coord-club-select');
+  const sideSelect = document.getElementById('coord-club-select-sidebar');
+  const wzSelect   = document.getElementById('wz-club-id');
+  if (topSelect  && topSelect.value  != myClubId) topSelect.value  = myClubId;
+  if (sideSelect && sideSelect.value != myClubId) sideSelect.value = myClubId;
+  if (wzSelect   && wzSelect.value   != myClubId) wzSelect.value   = myClubId;
+
+  updateClubDisplays();
+  await loadEvents();
+  showToast(`Switched active club to: ${myClubName} 🏛`, 'info');
+}
+
+function updateClubDisplays() {
+  const clubLabel = document.getElementById('club-label');
+  if (clubLabel) clubLabel.textContent = myClubName || 'Club Coordinator';
+  const clubDisplay = document.getElementById('club-name-display');
+  if (clubDisplay) clubDisplay.textContent = myClubName || 'your club';
+  const cardTitle = document.getElementById('club-name-card');
+  if (cardTitle) cardTitle.textContent = myClubName || 'My Club';
+  const prevClub = document.getElementById('prev-club-name');
+  if (prevClub) prevClub.textContent = myClubName || '—';
 }
 
 // ============================================================
@@ -205,6 +276,12 @@ function openCreateWizard() {
   resetCustomFields();
   selectedEventType = 'CODING';
   resetToolsToDefault();
+
+  const wzSelect = document.getElementById('wz-club-id');
+  if (wzSelect && myClubId) {
+    wzSelect.value = myClubId;
+  }
+
   goToStep(1);
   openModal('event-wizard-modal');
 }
@@ -228,6 +305,11 @@ function openEditWizard(id) {
   document.getElementById('wz-end-time').value         = event.endTime || '17:00';
   document.getElementById('wz-max-participants').value = event.maxParticipants || 100;
   document.getElementById('wz-reg-deadline').value     = event.registrationDeadline || '';
+
+  const wzSelect = document.getElementById('wz-club-id');
+  if (wzSelect) {
+    wzSelect.value = (event.club && event.club.id) ? event.club.id : myClubId;
+  }
 
   // Show rejection note if any
   const rejEl = document.getElementById('wizard-rejection-note');
@@ -486,6 +568,11 @@ function populatePreview() {
   document.getElementById('prev-venue').textContent    = document.getElementById('wz-venue').value;
   document.getElementById('prev-type-badge').innerHTML = formatTypeBadge(selectedEventType);
 
+  const wzSelect = document.getElementById('wz-club-id');
+  const clubNameText = wzSelect && wzSelect.selectedIndex >= 0 && wzSelect.options[wzSelect.selectedIndex] ? wzSelect.options[wzSelect.selectedIndex].text : (myClubName || 'Club');
+  const prevClub = document.getElementById('prev-club-name');
+  if (prevClub) prevClub.textContent = clubNameText;
+
   const toolsContainer = document.getElementById('prev-tools-container');
   toolsContainer.innerHTML = Array.from(selectedTools)
     .map(t => `<span class="tool-badge-chip" style="background:rgba(59,130,246,0.15); color:var(--accent-blue); border-color:rgba(59,130,246,0.3);">${formatToolName(t)}</span>`)
@@ -513,7 +600,8 @@ async function submitEventWizard() {
   const endTime     = document.getElementById('wz-end-time').value;
   const venue       = document.getElementById('wz-venue').value.trim();
 
-  const parsedClubId = myClubId ? parseInt(myClubId, 10) : null;
+  const selectedClubId = document.getElementById('wz-club-id')?.value || myClubId;
+  const parsedClubId   = selectedClubId ? parseInt(selectedClubId, 10) : null;
 
   const maxCap = parseInt(document.getElementById('wz-max-participants')?.value, 10) || 100;
   const deadline = document.getElementById('wz-reg-deadline')?.value || null;

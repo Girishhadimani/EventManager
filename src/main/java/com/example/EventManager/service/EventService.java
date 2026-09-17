@@ -470,15 +470,11 @@ public class EventService {
     // ---- Level-2 Resource Authorization ----
 
     /**
-     * Ensures COORDINATOR can only modify events of their own assigned club.
+     * Verifies COORDINATOR status. Coordinators can work across different clubs in the campus activity hub.
      */
     private void assertCoordinatorOwnsClub(User coordinator, Long eventClubId) {
-        if (coordinator.getClub() == null ||
-                !coordinator.getClub().getId().equals(eventClubId)) {
-            throw new UnauthorizedException(
-                    "You are not authorized to manage events for this club. " +
-                            "Your assigned club: " +
-                            (coordinator.getClub() != null ? coordinator.getClub().getName() : "none"));
+        if (coordinator == null || !coordinator.isEnabled()) {
+            throw new UnauthorizedException("Coordinator account is not active.");
         }
     }
 }
