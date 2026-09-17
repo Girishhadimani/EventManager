@@ -726,9 +726,9 @@ function syncPublicNavAuth() {
         if (navAuthContainer) {
             navAuthContainer.innerHTML = `
                 <div class="nav-auth-logged-in">
-                    <span class="badge badge-purple nav-user-badge">👋 ${name}</span>
+                    <span class="badge badge-purple nav-user-badge">${name}</span>
                     <button class="btn btn-primary btn-sm" onclick="redirectByRole()">
-                        📊 Dashboard
+                        Dashboard
                     </button>
                     <button class="btn btn-ghost btn-sm" onclick="logout()" title="Sign Out">
                         Sign Out
@@ -740,17 +740,17 @@ function syncPublicNavAuth() {
             mobileAuthContainer.innerHTML = `
                 <div class="drawer-user-card">
                     <div class="drawer-user-info">
-                        <div class="drawer-user-avatar">👤</div>
+                        <div class="drawer-user-avatar">&#9679;</div>
                         <div>
                             <div class="drawer-user-name">${name}</div>
                             <div class="drawer-user-role">${role}</div>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-block" onclick="closeMobileNav(); redirectByRole();" style="margin-bottom:8px;">
-                        📊 Open Dashboard
+                        Open Dashboard
                     </button>
                     <button class="btn btn-secondary btn-block" onclick="logout()">
-                        🚪 Sign Out
+                        Sign Out
                     </button>
                 </div>
             `;
@@ -758,18 +758,18 @@ function syncPublicNavAuth() {
     } else {
         if (navAuthContainer) {
             navAuthContainer.innerHTML = `
-                <button class="btn btn-primary btn-sm nav-signin-btn" onclick="if (typeof openLoginModal === 'function') openLoginModal(); else if (document.getElementById('loginModal')) openModal('loginModal'); else window.location.href='/index.html';">
-                    🔐 Sign In
-                </button>
+                <a class="btn btn-primary btn-sm nav-signin-btn" href="/index.html">
+                    Sign In
+                </a>
             `;
         }
         if (mobileAuthContainer) {
             mobileAuthContainer.innerHTML = `
-                <button class="btn btn-primary btn-block" onclick="closeMobileNav(); if (typeof openLoginModal === 'function') openLoginModal(); else if (document.getElementById('loginModal')) openModal('loginModal'); else window.location.href='/index.html';">
-                    🔐 Sign In to Portal
-                </button>
+                <a class="btn btn-primary btn-block" href="/index.html">
+                    Sign In to Portal
+                </a>
                 <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:8px;">
-                    Access registrations, QR tickets & certificates
+                    Access registrations, QR tickets &amp; certificates
                 </div>
             `;
         }
