@@ -460,7 +460,7 @@ async function loadRegistrationOverview() {
         <tr>
           <td>${i + 1}</td>
           <td>
-            <div style="font-weight:700; color:#fff;">${item.eventTitle}</div>
+            <div style="font-weight:700; color:var(--text-primary);">${item.eventTitle}</div>
             <small style="color:var(--accent-blue);">🏛️ ${item.clubName}</small>
           </td>
           <td>${typeBadge}</td>

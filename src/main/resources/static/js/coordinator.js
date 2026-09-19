@@ -975,7 +975,7 @@ function filterRegistrations() {
           <br><small style="color:var(--text-muted); font-size:0.7rem;">${regDate}</small>
         </td>
         <td>
-          <div style="font-weight:600; color:#fff;">${r.studentName || 'Student'}</div>
+          <div style="font-weight:600; color:var(--text-primary);">${r.studentName || 'Student'}</div>
           <small style="color:var(--accent-blue); font-family:monospace;">${r.usnOrStudentId || '—'}</small>
           ${r.teamName ? `<div style="margin-top:3px;"><span class="badge badge-purple" style="font-size:0.68rem;">🚀 Team: ${escapeHtml(r.teamName)}</span></div>` : ''}
         </td>

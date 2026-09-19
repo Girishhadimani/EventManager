@@ -861,8 +861,8 @@ function renderMyRegistrations() {
           ${r.checkedInAt ? '<br><small style="color:var(--accent-green); font-weight:600;">✓ Checked-In</small>' : ''}
         </td>
         <td>
-          <div style="font-weight:600; color:#fff; font-size:0.95rem;">${escapeHtml(title)}</div>
-          ${r.teamName ? `<div style="font-size:0.75rem; color:#c7d2fe; margin-top:2px;">👥 Team: <strong>${escapeHtml(r.teamName)}</strong></div>` : ''}
+          <div style="font-weight:600; color:var(--text-primary); font-size:0.95rem;">${escapeHtml(title)}</div>
+          ${r.teamName ? `<div style="font-size:0.75rem; color:var(--accent-indigo); margin-top:2px;">👥 Team: <strong>${escapeHtml(r.teamName)}</strong></div>` : ''}
           <small style="color:var(--text-muted);">${r.usnOrStudentId ? 'USN: ' + escapeHtml(r.usnOrStudentId) : ''}</small>
         </td>
         <td><span style="font-size:0.85rem; color:var(--text-secondary);">${escapeHtml(club)}</span></td>
@@ -2854,7 +2854,7 @@ async function loadVtuPointsTab() {
         <tr>
           <td>${i + 1}</td>
           <td>
-            <div style="font-weight:600; color:#fff;">${escapeHtml(a.eventName)}</div>
+            <div style="font-weight:600; color:var(--text-primary);">${escapeHtml(a.eventName)}</div>
             <small style="color:var(--text-muted); font-family:monospace;">${escapeHtml(a.registrationNumber || '')}</small>
           </td>
           <td><span class="badge badge-purple" style="font-size:0.72rem;">${escapeHtml(a.category)}</span></td>
